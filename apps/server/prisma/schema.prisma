@@ -1,0 +1,54 @@
+// Prisma 5 + SQLite does not support the Json column type, so `data` and
+// `config` are stored as JSON-serialized String columns and validated with the
+// shared Zod schemas at the route boundary.
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Clinic {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  patients  Patient[]
+  reports   Report[]
+  templates Template[]
+}
+
+model Patient {
+  id       String   @id @default(cuid())
+  clinicId String
+  clinic   Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  name     String
+  sex      String
+  age      Int
+  reports  Report[]
+}
+
+model Report {
+  id             String   @id @default(cuid())
+  patientId      String
+  patient        Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  clinicId       String
+  clinic         Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  assessmentDate DateTime
+  generatedDate  DateTime
+  data           String // ReportData JSON
+}
+
+model Template {
+  id        String   @id @default(cuid())
+  clinicId  String
+  clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  name      String
+  isDefault Boolean  @default(false)
+  version   Int      @default(1)
+  config    String // TemplateConfig JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
