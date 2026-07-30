@@ -1,353 +1,631 @@
 import type { ReportData } from '@app/shared'
 
 /**
- * Fully synthetic patients. Values are invented in the spirit of the reference
- * report (fasting insulin ~27.8 µIU/mL, triglycerides ~187, HDL 39, LDL 101,
- * A1c 5.5%, eGFR 66, creatinine 1.33, estradiol 53).
+ * FULL_REPORT is modeled faithfully on the reference report in
+ * ./reference — same sections, section order, plan/order/timeline structure,
+ * the seven coach cards (including the enclomiphene medication-safety block),
+ * eight goals, and all fourteen deep-dive categories with their biomarker
+ * tables. The patient is synthetic (fake name), with age/dates matching the
+ * reference header; lab values are transcribed from the reference.
  */
 
 export const FULL_REPORT: ReportData = {
   meta: {
-    patient: { name: 'Marcus Ellison', sex: 'male', age: 52 },
-    preparedBy: 'Dr. Adina Doron, MD',
-    assessmentDate: '2026-07-14',
-    generatedDate: '2026-07-21',
+    patient: { name: 'Marcus Ellison', sex: 'male', age: 49 },
+    preparedBy: 'Dr. Doron',
+    assessmentDate: '2026-06-29',
+    generatedDate: '2026-06-29',
   },
   healthStatus: {
     narrative:
-      'Marcus, your overall foundation is strong: your heart rhythm, liver enzymes, blood counts and inflammation markers all look good. The assessment did surface three connected areas that need attention. First, your fasting insulin is markedly elevated while your blood sugar is still near-normal — the classic early signature of insulin resistance, and the best possible time to reverse it. Second, your lipid pattern (high triglycerides with low HDL) is the metabolic mirror of that same process. Third, your kidney filtration rate is mildly reduced, which we want to protect while we work on the first two. None of these are emergencies; all of them respond well to the plan below.',
-    authorName: 'Dr. Adina Doron, MD',
+      'Since your last assessment, the core metabolic and kidney themes are still present, but the newer chart information adds important context. Your strongest objective signals remain reassuring: normal blood counts, normal thyroid screening, and normal liver chemistries on the last available labs. The main issue is still an insulin-resistance pattern — elevated fasting insulin, high triglycerides, low HDL, and borderline LDL on the last fasting panel — and the older 2023 results show this has been a longer-running pattern. Kidney function still looks mildly reduced rather than clearly normal, and that matters more now that hypertension is documented. The hormone picture is less mysterious than before, because the testosterone rise is now more consistent with active enclomiphene treatment, but it still needs monitoring. New charted diagnoses of hypertension, psoriasis, ADHD, and depression are folded into the overall longevity plan, not treated as separate from the rest of your health.',
+    authorName: 'Dr. Doron',
   },
   story: [
     {
-      title: 'Where you are today',
-      body: 'Your body is producing almost three times the ideal amount of insulin to keep your blood sugar in range. That effort is succeeding for now — your A1c of 5.5% is still normal — but it is also driving your liver to package extra fat into triglycerides and pulling your protective HDL down.',
+      title: 'Kidney monitoring',
+      body: 'You want to keep a close eye on your kidney function and understand whether the prior creatinine and eGFR pattern represents a stable mild issue or something that needs stronger protection.',
     },
     {
-      title: 'How you got here',
-      body: 'A decade of a sedentary desk role, evening snacking and gradually declining muscle mass shifted how your body handles carbohydrate. Muscle is the largest "sink" for blood sugar; with less of it, insulin has to work harder. Your family history of type 2 diabetes adds background risk, but genetics load the gun — lifestyle pulls the trigger.',
+      title: 'Glycemic control',
+      body: 'You want a clearer read on your blood sugar control and insulin resistance, not just whether you meet a diabetes cutoff.',
     },
     {
-      title: 'Where we are headed',
-      body: 'The next 12 weeks focus on rebuilding that sink: regular zone-2 aerobic work, two resistance sessions a week, and a Mediterranean-style plate that lowers the insulin demand of each meal. A low starting dose of metformin gives the process a pharmacological tailwind. We re-test at week 12 and expect fasting insulin, triglycerides and HDL to have moved meaningfully.',
+      title: 'Lipid control',
+      body: 'You want to improve your cholesterol profile and better define your long-term cardiovascular prevention strategy.',
+    },
+    {
+      title: 'Hormone evaluation',
+      body: 'You want to understand your reproductive hormone pattern better, especially given the short-term variability in testosterone, LH, FSH, and estradiol.',
+    },
+    {
+      title: 'Blood pressure control',
+      body: 'You want to know whether your blood pressure is truly controlled and how it fits into your broader prevention plan.',
+    },
+    {
+      title: 'Mental health',
+      body: 'You want your depression and ADHD care to be part of the overall longevity plan, not treated as separate from the rest of your health.',
     },
   ],
   goals: [
     {
       order: 1,
-      title: 'Restore insulin sensitivity',
-      condition: 'Insulin resistance (early)',
-      domains: ['Metabolic', 'Nutrition', 'Exercise'],
-      timeframeWeeks: 12,
+      title: 'Lower insulin and triglycerides',
+      condition: 'Chronic: insulin resistance',
+      domains: ['Metabolic Health', 'Liver Health', 'Nutrition & Vitamins'],
+      timeframeWeeks: 24,
       metrics: [
-        { name: 'Fasting insulin', current: '27.8 µIU/mL', target: '< 15 µIU/mL', timeframe: '12 weeks' },
-        { name: 'Fasting glucose', current: '104 mg/dL', target: '< 95 mg/dL', timeframe: '12 weeks' },
-        { name: 'Waist circumference', current: '41 in', target: '38 in', timeframe: '12 weeks' },
+        { name: 'Hemoglobin A1c', current: '5.3 %', target: '5.2 %', timeframe: '24 weeks' },
+        { name: 'Insulin', current: '27.8 µIU/mL', target: '18 µIU/mL', timeframe: '12 weeks' },
+        { name: 'Triglycerides', current: '187 mg/dL', target: '148 mg/dL', timeframe: '12 weeks' },
       ],
     },
     {
       order: 2,
-      title: 'Improve lipid profile',
-      condition: 'Atherogenic dyslipidemia',
-      domains: ['Cardiovascular', 'Nutrition'],
-      timeframeWeeks: 12,
+      title: 'Lower lipid and BP risk',
+      condition: 'Hypertension plus dyslipidemia',
+      domains: ['Cardiovascular Health', 'Brain Health', 'Inflammation'],
+      timeframeWeeks: 24,
       metrics: [
-        { name: 'Triglycerides', current: '187 mg/dL', target: '< 150 mg/dL', timeframe: '12 weeks' },
-        { name: 'HDL cholesterol', current: '39 mg/dL', target: '> 45 mg/dL', timeframe: '12 weeks' },
-        { name: 'Triglyceride/HDL ratio', current: '4.8', target: '< 3.0', timeframe: '12 weeks' },
+        { name: 'Non-HDL Cholesterol', current: '129 mg/dL', target: '100 mg/dL', timeframe: '12 weeks' },
+        { name: 'HDL Cholesterol', current: '39 mg/dL', target: '45 mg/dL', timeframe: '24 weeks' },
+        { name: 'LDL-Cholesterol', current: '101 mg/dL', target: '80 mg/dL', timeframe: '12 weeks' },
+        { name: 'Home blood pressure log', current: 'not documented', target: 'completed', timeframe: '3 weeks' },
       ],
     },
     {
       order: 3,
-      title: 'Protect kidney function',
-      condition: 'Mildly reduced eGFR',
-      domains: ['Kidney', 'Hydration'],
+      title: 'Protect kidney filtration',
+      condition: 'Borderline renal function',
+      domains: ['Kidney Health', 'Cardiovascular Health'],
       timeframeWeeks: 24,
       metrics: [
-        { name: 'eGFR', current: '66 mL/min/1.73m²', target: '≥ 66 (stable)', timeframe: '24 weeks' },
-        { name: 'Creatinine', current: '1.33 mg/dL', target: '< 1.30 mg/dL', timeframe: '24 weeks' },
+        { name: 'Creatinine', current: '1.33 mg/dL', target: '1.20 mg/dL', timeframe: '24 weeks' },
+        { name: 'eGFR', current: '66 mL/min/1.73m²', target: '75 mL/min/1.73m²', timeframe: '24 weeks' },
       ],
     },
     {
       order: 4,
-      title: 'Build aerobic capacity',
-      condition: 'Deconditioning',
-      domains: ['Exercise'],
+      title: 'Improve sleep and brain recovery',
+      condition: 'Sleep and psychiatric strain',
+      domains: ['Sleep Health', 'Brain Health', 'Emotional & Social Health'],
       timeframeWeeks: 12,
       metrics: [
-        { name: 'Zone-2 minutes per week', current: '0 min', target: '150 min', timeframe: '12 weeks' },
-        { name: 'Resting heart rate', current: '74 bpm', target: '< 68 bpm', timeframe: '12 weeks' },
+        { name: 'THC use', current: 'nightly', target: 'reduced or clinician-reviewed', timeframe: '12 weeks' },
+        { name: 'Psychiatric medication review', current: 'not recently reconciled', target: 'completed', timeframe: '6 weeks' },
+        { name: 'Sleep assessment', current: 'not completed', target: 'completed', timeframe: '4 weeks' },
+      ],
+    },
+    {
+      order: 5,
+      title: 'Lower fatty-liver risk',
+      condition: 'Prior ALT elevation',
+      domains: ['Liver Health', 'Metabolic Health', 'Nutrition & Vitamins'],
+      timeframeWeeks: 24,
+      metrics: [
+        { name: 'Insulin', current: '27.8 µIU/mL', target: '15 µIU/mL', timeframe: '24 weeks' },
+        { name: 'Triglycerides', current: '187 mg/dL', target: '120 mg/dL', timeframe: '24 weeks' },
+      ],
+    },
+    {
+      order: 6,
+      title: 'Protect knees and reserve',
+      condition: 'Active knee OA',
+      domains: ['Musculoskeletal Health', 'Nutrition & Vitamins', 'Blood Health'],
+      timeframeWeeks: 12,
+      metrics: [
+        { name: 'Strength training frequency', current: '3 sessions/week', target: '4 sessions/week', timeframe: '12 weeks' },
+        { name: 'DXA scan', current: 'untested', target: 'completed', timeframe: '12 weeks' },
+      ],
+    },
+    {
+      order: 7,
+      title: 'Monitor hormone therapy response',
+      condition: 'Active hormone therapy follow-up',
+      domains: ['Thyroid & Hormone Health'],
+      timeframeWeeks: 12,
+      metrics: [
+        { name: 'Estradiol', current: '53 pg/mL', target: '35 pg/mL', timeframe: '12 weeks' },
+      ],
+    },
+    {
+      order: 8,
+      title: 'Address psoriasis and prevention gaps',
+      condition: 'Psoriasis and screening refinement',
+      domains: ['Skin Health', 'Inflammation', 'Cancer Screening'],
+      timeframeWeeks: 12,
+      metrics: [
+        { name: 'Full-body skin exam', current: 'not documented', target: 'completed', timeframe: '12 weeks' },
+        { name: 'Hereditary cancer risk review', current: 'not completed', target: 'completed', timeframe: '12 weeks' },
       ],
     },
   ],
   plan: {
     items: [
-      { id: 'p-zone2', kind: 'lifestyle', title: 'Zone-2 aerobic training' },
-      { id: 'p-resistance', kind: 'lifestyle', title: 'Resistance training 2×/week' },
-      { id: 'p-diet', kind: 'diet', title: 'Mediterranean, lower-carbohydrate plate' },
-      { id: 'p-metformin', kind: 'medication', title: 'Metformin ER 500 mg' },
-      { id: 'p-omega3', kind: 'supplement', title: 'Omega-3 (EPA/DHA) 2 g daily' },
-      { id: 'p-retest', kind: 'testing', title: '12-week metabolic re-test' },
+      { id: 'p-meals', kind: 'diet', title: 'Build protein-fiber meals' },
+      { id: 'p-cardio', kind: 'lifestyle', title: 'Add cardio and lifting' },
+      { id: 'p-bp', kind: 'lifestyle', title: 'Track your home BP' },
+      { id: 'p-wake', kind: 'lifestyle', title: 'Set a fixed wake time' },
+      { id: 'p-thc', kind: 'lifestyle', title: 'Reduce nightly THC' },
+      { id: 'p-knee', kind: 'lifestyle', title: 'Start knee-smart training' },
+      { id: 'p-enclomiphene', kind: 'medication', title: 'Continue enclomiphene as prescribed' },
     ],
   },
   orders: {
     labs: [
-      'Fasting insulin + glucose (repeat, week 12)',
-      'Lipid panel (repeat, week 12)',
-      'Comprehensive metabolic panel with eGFR (repeat, week 12)',
-      'HbA1c (week 12)',
+      'Fasting metabolic follow-up panel',
+      'Lipid risk refinement panel (fasting lipid panel + ApoB + Lp(a))',
+      'Kidney clarification panel',
+      'Liver-metabolic reassessment panel (CMP + GGT + CBC + fasting insulin + HbA1c + lipid panel)',
+      'Male hormone surveillance panel (estradiol + total testosterone + free testosterone + SHBG + CBC/hematocrit + CMP)',
     ],
     referrals: [
-      'Registered dietitian — metabolic nutrition program',
-      'Exercise physiologist — supervised program start',
+      'Ambulatory blood pressure monitoring or clinician-validated hypertension follow-up',
+      'Sleep medicine evaluation',
+      'Psychiatry or prescribing-clinician medication review',
+      'Physical therapy referral for bilateral knee osteoarthritis',
+      'Dermatology referral for psoriasis staging and full-body skin exam',
+      'Cancer genetics referral for hereditary risk review',
     ],
-    imaging: ['DEXA body-composition scan (baseline, within 2 weeks)'],
+    imaging: ['Liver ultrasound with elastography', 'DEXA body composition and bone density scan'],
   },
   timeline: [
     {
       offsetLabel: 'Now',
       entries: [
-        { planItemId: 'p-metformin', planItemTitle: 'Metformin ER 500 mg', kind: 'medication', action: 'Start 500 mg with your evening meal' },
-        { planItemId: 'p-zone2', planItemTitle: 'Zone-2 aerobic training', kind: 'lifestyle', action: 'Begin with two 30-minute brisk walks this week' },
-        { planItemId: 'p-diet', planItemTitle: 'Mediterranean plate', kind: 'diet', action: 'Swap refined carbohydrates at dinner for vegetables + protein' },
+        { planItemId: 'p-meals', planItemTitle: 'Build protein-fiber meals', kind: 'diet', action: 'Fiber ramp' },
+        { planItemId: 'p-meals', planItemTitle: 'Build protein-fiber meals', kind: 'diet', action: 'Meal structure' },
+        { planItemId: 'p-cardio', planItemTitle: 'Add cardio and lifting', kind: 'lifestyle', action: 'Base volume' },
+        { planItemId: 'p-cardio', planItemTitle: 'Add cardio and lifting', kind: 'lifestyle', action: 'Build walking base' },
+        { planItemId: 'p-cardio', planItemTitle: 'Add cardio and lifting', kind: 'lifestyle', action: 'Aerobic base' },
+        { planItemId: 'p-bp', planItemTitle: 'Track your home BP', kind: 'lifestyle', action: 'Run monitor' },
+        { planItemId: 'p-bp', planItemTitle: 'Track your home BP', kind: 'lifestyle', action: 'Set technique' },
+        { planItemId: 'p-wake', planItemTitle: 'Set a fixed wake time', kind: 'lifestyle', action: 'Anchor mornings' },
+        { planItemId: 'p-thc', planItemTitle: 'Reduce nightly THC', kind: 'lifestyle', action: 'Measure baseline' },
+        { planItemId: 'p-knee', planItemTitle: 'Start knee-smart training', kind: 'lifestyle', action: 'Pain-light baseline' },
+        { planItemId: 'p-enclomiphene', planItemTitle: 'Continue enclomiphene as prescribed', kind: 'medication', action: 'Keep dose stable' },
       ],
     },
     {
       offsetLabel: '1 week',
       entries: [
-        { planItemId: 'p-omega3', planItemTitle: 'Omega-3 (EPA/DHA) 2 g daily', kind: 'supplement', action: 'Start 2 g daily with food' },
-        { planItemId: 'p-diet', planItemTitle: 'Mediterranean plate', kind: 'diet', action: 'Dietitian visit — personalize the meal template' },
+        { planItemId: 'p-meals', planItemTitle: 'Build protein-fiber meals', kind: 'diet', action: 'Viscous fiber' },
+        { planItemId: 'p-thc', planItemTitle: 'Reduce nightly THC', kind: 'lifestyle', action: 'Step down' },
       ],
     },
     {
       offsetLabel: '2 weeks',
       entries: [
-        { planItemId: 'p-resistance', planItemTitle: 'Resistance training 2×/week', kind: 'lifestyle', action: 'First supervised session with exercise physiologist' },
-        { planItemId: 'p-zone2', planItemTitle: 'Zone-2 aerobic training', kind: 'lifestyle', action: 'Progress to three 40-minute sessions' },
+        { planItemId: 'p-meals', planItemTitle: 'Build protein-fiber meals', kind: 'diet', action: 'Refine carbs' },
+        { planItemId: 'p-cardio', planItemTitle: 'Add cardio and lifting', kind: 'lifestyle', action: 'Add strength sessions' },
+        { planItemId: 'p-bp', planItemTitle: 'Track your home BP', kind: 'lifestyle', action: 'Review pattern' },
+        { planItemId: 'p-wake', planItemTitle: 'Set a fixed wake time', kind: 'lifestyle', action: 'Protect consistency' },
       ],
     },
     {
       offsetLabel: '4 weeks',
       entries: [
-        { planItemId: 'p-metformin', planItemTitle: 'Metformin ER 500 mg', kind: 'medication', action: 'Check-in call: tolerance review, increase to 1000 mg if comfortable' },
-        { planItemId: 'p-retest', planItemTitle: 'DEXA body composition', kind: 'testing', action: 'Baseline DEXA scan' },
+        { planItemId: 'p-cardio', planItemTitle: 'Add cardio and lifting', kind: 'lifestyle', action: 'Interval add-on' },
+        { planItemId: 'p-cardio', planItemTitle: 'Add cardio and lifting', kind: 'lifestyle', action: 'Progress aerobic volume' },
+        { planItemId: 'p-knee', planItemTitle: 'Start knee-smart training', kind: 'lifestyle', action: 'Quad-hip build' },
+        { planItemId: 'p-enclomiphene', planItemTitle: 'Continue enclomiphene as prescribed', kind: 'medication', action: 'Standardize lab timing' },
+      ],
+    },
+    {
+      offsetLabel: '6 weeks',
+      entries: [
+        { planItemId: 'p-bp', planItemTitle: 'Track your home BP', kind: 'lifestyle', action: 'Recheck effect' },
+        { planItemId: 'p-thc', planItemTitle: 'Reduce nightly THC', kind: 'lifestyle', action: 'Reassess sleep' },
       ],
     },
     {
       offsetLabel: '8 weeks',
       entries: [
-        { planItemId: 'p-zone2', planItemTitle: 'Zone-2 aerobic training', kind: 'lifestyle', action: 'Target reached: 150 zone-2 minutes/week' },
+        { planItemId: 'p-meals', planItemTitle: 'Build protein-fiber meals', kind: 'diet', action: 'Lipid review' },
+        { planItemId: 'p-knee', planItemTitle: 'Start knee-smart training', kind: 'lifestyle', action: 'Fourth session' },
+        { planItemId: 'p-enclomiphene', planItemTitle: 'Continue enclomiphene as prescribed', kind: 'medication', action: 'Review response' },
       ],
     },
     {
       offsetLabel: '12 weeks',
       entries: [
-        { planItemId: 'p-retest', planItemTitle: '12-week metabolic re-test', kind: 'testing', action: 'Repeat fasting insulin, lipids, CMP, HbA1c' },
-        { planItemId: 'p-retest', planItemTitle: 'Follow-up visit', kind: 'testing', action: 'Review results and adjust the plan' },
+        { planItemId: 'p-cardio', planItemTitle: 'Add cardio and lifting', kind: 'lifestyle', action: 'Progression' },
       ],
     },
   ],
   coach: [
     {
-      planItemId: 'p-metformin',
-      title: 'Metformin ER 500 mg',
+      planItemId: 'p-meals',
+      title: 'Protein-Fiber Plate',
       whatToDo:
-        'Take one 500 mg extended-release tablet with your evening meal. After the week-4 check-in, and only if we agree, increase to two tablets (1000 mg) with the same meal.',
+        'Build meals from a protein-first list, then vegetables or other high-fiber foods, and keep refined starches and sugars the smallest part of the plate.',
       whyItMatters:
-        'Metformin lowers the amount of glucose your liver releases overnight, which directly reduces how much insulin your body must produce. It is the best-studied first medication for insulin resistance.',
+        'Your last fasting pattern suggests your body was using excess insulin to hold glucose in range. Reducing that insulin demand is the fastest way to improve both metabolic risk and fatty-liver risk.',
       howItWorks:
-        'It activates an energy sensor (AMPK) in liver cells, telling them to burn fuel rather than export it as glucose. Less exported glucose means less insulin demand — and lower fasting insulin over time.',
+        'Protein and fiber slow absorption, reduce post-meal glucose swings, improve fullness, and reduce the liver’s drive to package excess energy into triglycerides.',
       week1Plan:
-        'Days 1–7: 500 mg with dinner. Expect mild stomach rumbling for the first few days; taking it mid-meal helps. Keep a note of any side effects for the week-4 call.',
+        'At two meals per day, make protein the anchor. Add one fiber-rich food at each meal. Remove one obvious source of sugar or refined starch that you eat most often.',
+      eatAvoid: {
+        eat: ['Eggs, fish, Greek yogurt', 'Tofu, poultry, beans, lentils', 'Vegetables, berries', 'Nuts and seeds', 'Minimally processed starches'],
+        avoid: ['Sugary drinks', 'Desserts', 'Large evening starch loads', 'Ultra-processed snack foods'],
+      },
       faq: [
+        { q: 'Do I need to go very low carb?', a: 'No. The goal is a lower-insulin pattern, not a rigid diet label.' },
         {
-          q: 'Will metformin cause low blood sugar?',
-          a: 'On its own, almost never. It reduces glucose production rather than forcing sugar down, so it does not cause hypoglycemia the way insulin or sulfonylureas can.',
-        },
-        {
-          q: 'Can I take it with my other supplements?',
-          a: 'Yes. Separate it from the omega-3 by an hour if you notice stomach upset, but there is no interaction.',
+          q: 'What if my A1c is already 5.5%?',
+          a: 'Your insulin and triglycerides show there is still metabolic work happening behind that A1c.',
         },
       ],
-      tip: 'The extended-release version is much gentler on digestion — always take it with food, never on an empty stomach.',
+      tip: 'If you are unsure where to start, change breakfast first; it often sets the insulin pattern for the rest of the day.',
+    },
+    {
+      planItemId: 'p-cardio',
+      title: 'Zone 2 plus lifting',
+      whatToDo: 'Build a weekly routine that combines steady aerobic work with resistance training.',
+      whyItMatters:
+        'This is one of the most reliable ways to lower insulin resistance before diabetes develops. It also helps triglycerides, body composition, and liver fat risk.',
+      howItWorks:
+        'Working muscles take up more glucose and become more sensitive to insulin. Over time, your body does not need to over-secrete insulin to keep glucose normal.',
+      week1Plan:
+        'Do three brisk walks or bike sessions of 30–45 minutes and two short full-body strength sessions.',
+      faq: [
+        {
+          q: 'Do I need intense exercise?',
+          a: 'No. Consistent moderate work plus basic strength training is enough to start changing the biology.',
+        },
+        {
+          q: 'What if I am deconditioned?',
+          a: 'Start shorter and build; consistency matters more than intensity in week one.',
+        },
+      ],
+    },
+    {
+      planItemId: 'p-bp',
+      title: 'Track your home BP',
+      whatToDo: 'Measure and log your blood pressure at home in a standardized way for the next few weeks.',
+      whyItMatters:
+        'You now have a documented hypertension diagnosis, but there are still no actual readings in the chart. With stimulant exposure on board, guessing is not good enough.',
+      howItWorks:
+        'Repeated home readings give a much better picture of your real blood-pressure load than an isolated office impression and help your clinician see whether treatment is actually helping.',
+      week1Plan:
+        'Set up a validated cuff, measure twice each morning and evening on at least 4 days, and store the readings in one place you can share.',
+      faq: [
+        {
+          q: 'What if one reading is high?',
+          a: 'Look at the pattern, not a single number, unless you have symptoms or very severe values that need urgent care.',
+        },
+        {
+          q: 'Should I measure right after exercise or caffeine?',
+          a: 'No. Measure when rested and consistent so the log is interpretable.',
+        },
+      ],
+      tip: 'Keep the cuff next to something you already do every morning and evening so the routine sticks.',
+    },
+    {
+      planItemId: 'p-wake',
+      title: 'Fixed Wake Time',
+      whatToDo: 'Wake up at the same time every day for the next month.',
+      whyItMatters:
+        'This is the fastest way to steady a disrupted sleep schedule when medications, stress, or evening habits are pushing your sleep in different directions.',
+      howItWorks:
+        'A fixed wake time strengthens your circadian rhythm and helps sleep pressure build at the right time the next night.',
+      week1Plan: 'Pick one realistic wake time, set alarms, and get out of bed within 10 minutes every day.',
+      faq: [
+        {
+          q: 'What if I slept badly?',
+          a: 'Keep the wake time anyway; consistency matters more than one rough night.',
+        },
+      ],
+      tip: 'Put the alarm across the room so getting up becomes automatic.',
+    },
+    {
+      planItemId: 'p-thc',
+      title: 'THC Taper',
+      whatToDo: 'Reduce nightly THC use in a gradual, trackable way instead of using it automatically every evening.',
+      whyItMatters:
+        'Your updated chart now shows nightly THC on top of stimulant and antidepressant treatment, which is a setup for sleep that may feel sedated but not fully restorative.',
+      howItWorks:
+        'Regular THC can blunt REM sleep and create rebound sleep disruption as tolerance develops. Lowering the exposure helps your sleep architecture recover.',
+      week1Plan: 'Write down your usual nightly pattern, then choose one small step-down target for the next week.',
+      faq: [
+        {
+          q: 'Do I need to stop all at once?',
+          a: 'No. A gradual reduction is usually more sustainable and gives clearer feedback.',
+        },
+      ],
+      tip: 'Track next-morning clarity, dream recall, and energy so the benefits become easier to notice.',
+    },
+    {
+      planItemId: 'p-knee',
+      title: 'Knee-smart strength plan',
+      whatToDo:
+        'Keep lifting, but make your lower-body training more knee-efficient: controlled tempo, moderate range, and gradual progression.',
+      whyItMatters:
+        'Strong quads, glutes, and hamstrings help unload the knee and make osteoarthritis less limiting over time.',
+      howItWorks:
+        'Better muscle support and cleaner movement patterns reduce joint irritation while preserving the training habit that protects the rest of your health.',
+      week1Plan:
+        'Keep your current three gym sessions. On lower-body days, reduce any movement that causes a clear pain spike; favor split squats, box squats, leg presses in a tolerated range, hamstring work, and step-ups.',
+      faq: [
+        {
+          q: 'Should you stop squatting?',
+          a: 'No — usually the better move is to change depth, tempo, stance, or load.',
+        },
+        {
+          q: 'Is pain ever acceptable?',
+          a: 'Mild, short-lived discomfort can be workable; pain that clearly worsens during the session or lingers into the next day means back down.',
+        },
+      ],
+      tip: 'Change only one loading variable at a time — weight, depth, or volume, not all three together.',
+    },
+    {
+      planItemId: 'p-enclomiphene',
+      title: 'Continue enclomiphene',
+      whatToDo:
+        'Keep taking enclomiphene exactly as currently prescribed and repeat your hormone surveillance labs in the next 1–3 months.',
+      whyItMatters:
+        'Your recent records make it much more likely that the spring testosterone rise was the intended treatment effect. The main question now is whether you are getting that benefit without letting estradiol drift too high.',
+      howItWorks:
+        'This medication helps your brain send a stronger signal to your testes to produce testosterone. That same shift can also raise estradiol, so follow-up labs are how you keep the benefits while avoiding overshooting.',
+      week1Plan:
+        'Keep your morning dosing routine consistent, note any breast tenderness, fluid retention, acne, mood change, headaches, or libido changes, and book the follow-up lab draw.',
+      faq: [
+        {
+          q: 'If testosterone looks good, why recheck anything?',
+          a: 'Because estradiol, hematocrit, and liver chemistry help show whether the treatment is still balanced and safe.',
+        },
+        {
+          q: 'Should I change the dose before the next lab?',
+          a: 'No — keeping the regimen stable makes the next result much easier to interpret.',
+        },
+      ],
+      tip: 'Try to get future hormone labs drawn under the same conditions each time, especially with respect to your morning dose.',
       safety: {
         avoid:
-          'Avoid binge drinking or more than 2 alcoholic drinks in a day while on metformin — alcohol raises the risk of lactic acidosis. Pause the medication on any day you cannot keep fluids down (vomiting/diarrhea).',
+          'Do not continue this medication without clinician review if you develop unexplained vision changes, chest pain, shortness of breath, or one-sided leg swelling, or if you have been told you have an active clotting disorder or significant liver disease.',
         monitoring:
-          'We will check kidney function (creatinine/eGFR) at week 12 and then every 6 months, because metformin is cleared by the kidneys and yours are running mildly below normal.',
+          'Repeat estradiol and the rest of your surveillance labs on schedule so your clinician can confirm the treatment stays balanced and safe (we’ll check estradiol once in the next 1–3 months, then per clinician).',
         dosing:
-          'Start 500 mg once daily with the evening meal. Do not increase the dose yourself — the week-4 review decides the step to 1000 mg.',
+          'Do not increase the dose on your own; stay at 25 mg each morning unless your prescribing clinician changes the regimen. Maintain the current dose until the follow-up panel is reviewed.',
         callUs:
-          'Call us right away if you experience severe stomach pain, unusual muscle pain, trouble breathing, extreme fatigue or drowsiness, or feeling cold in your arms and legs — these can be early signs of lactic acidosis, a rare but serious side effect.',
+          'Stop the medication and contact your clinician promptly if you develop visual symptoms, severe persistent headache, marked mood worsening, breast tenderness with rapid swelling, or symptoms concerning for a blood clot.',
       },
-    },
-    {
-      planItemId: 'p-zone2',
-      title: 'Zone-2 aerobic training',
-      whatToDo:
-        'Build to 150 minutes per week of steady, conversational-pace cardio (brisk walking, cycling, rowing). "Zone 2" means you can talk in full sentences but would rather not sing.',
-      whyItMatters:
-        'Zone-2 work is the single most effective lifestyle tool for insulin resistance: it grows the mitochondria in your muscles, which are the engines that clear glucose and triglycerides from your blood.',
-      howItWorks:
-        'At this intensity your muscles burn fat as their primary fuel, training them to switch fuels efficiently. Better "metabolic flexibility" means less insulin is needed after every meal.',
-      week1Plan:
-        'Two 30-minute brisk walks on non-consecutive days. If your watch tracks heart rate, aim for roughly 180 minus your age (≈128 bpm) as a ceiling.',
-      faq: [
-        {
-          q: 'Is walking really enough?',
-          a: 'Yes — at the right pace. The goal is duration and consistency, not intensity. A brisk walk that keeps your heart rate around 120–130 bpm counts fully.',
-        },
-        {
-          q: 'What if I miss a session?',
-          a: 'Just continue the schedule; do not double up. Consistency over weeks matters far more than any single session.',
-        },
-      ],
-      tip: 'Attach sessions to an existing habit — for example, walk immediately after dinner. Post-meal walks also blunt the glucose spike from that meal.',
-    },
-    {
-      planItemId: 'p-resistance',
-      title: 'Resistance training 2×/week',
-      whatToDo:
-        'Two full-body strength sessions per week, starting supervised at week 2. Focus on the big movements: squat or leg press, hinge, push, pull — 2–3 sets of 8–12 repetitions each.',
-      whyItMatters:
-        'Muscle is your largest reservoir for blood glucose. Every kilogram of muscle you add permanently increases the amount of carbohydrate your body can store without insulin spikes.',
-      howItWorks:
-        'Muscle contractions move glucose transporters (GLUT4) to the cell surface even without insulin — a parallel, insulin-independent door for sugar to leave your bloodstream.',
-      week1Plan:
-        'Nothing yet — your first supervised session is scheduled for week 2. This week, just confirm the appointment with the exercise physiologist.',
-      faq: [
-        {
-          q: 'Will lifting weights be safe for my knees?',
-          a: 'Yes — the program starts machine-based and supervised, and load is progressed only when your form is solid.',
-        },
-        {
-          q: 'Do I need a gym membership?',
-          a: 'For the first month, sessions run at the clinic gym. After that we will set you up with a simple home or gym program, whichever you prefer.',
-        },
-      ],
-      tip: 'Log your weights in the app after each session — visible progress is the strongest motivator we know.',
-    },
-    {
-      planItemId: 'p-diet',
-      title: 'Mediterranean, lower-carbohydrate plate',
-      whatToDo:
-        'Rebuild each meal around the plate template: half non-starchy vegetables, a quarter protein (fish, poultry, legumes), a quarter slow carbohydrates, dressed with olive oil. Keep refined starches and sugary drinks off the daily menu.',
-      whyItMatters:
-        'Every gram of refined carbohydrate you replace lowers the insulin demand of that meal. This eating pattern has the strongest evidence base for improving exactly your lipid pattern — high triglycerides with low HDL.',
-      howItWorks:
-        'Fewer fast carbohydrates mean smaller glucose surges, so the liver stops converting the overflow into triglycerides. Olive oil, nuts and fish shift the balance further by raising HDL.',
-      week1Plan:
-        'Change dinner only: swap the starch for a second vegetable and add a palm-sized protein portion. Breakfast and lunch stay as they are until the dietitian visit next week.',
-      eatAvoid: {
-        eat: [
-          'Non-starchy vegetables (unlimited)',
-          'Fatty fish 2–3×/week (salmon, sardines, mackerel)',
-          'Extra-virgin olive oil as the main fat',
-          'Legumes, nuts, berries',
-          'Whole intact grains in fist-sized portions',
-        ],
-        avoid: [
-          'Sugary drinks and fruit juice',
-          'White bread, white rice, pastries',
-          'Beer more than 2×/week',
-          'Ultra-processed snacks',
-          'Late-evening snacking after 9 pm',
-        ],
-      },
-      faq: [
-        {
-          q: 'Do I have to count calories?',
-          a: 'No. The plate template controls portions naturally. We only count one thing: how many days per week you follow the template — aim for at least 6.',
-        },
-        {
-          q: 'Is fruit allowed?',
-          a: 'Yes, 1–2 servings of whole fruit per day, ideally berries. It is fruit juice and dried fruit that behave like sugar.',
-        },
-      ],
-      tip: 'Shop once a week from a fixed list. The template fails in the kitchen at 7 pm, not at the plate — make the default easy.',
-    },
-    {
-      planItemId: 'p-omega3',
-      title: 'Omega-3 (EPA/DHA) 2 g daily',
-      whatToDo: 'Take 2 g of combined EPA/DHA daily with a meal that contains fat.',
-      whyItMatters:
-        'At this dose, omega-3 fatty acids reliably lower triglycerides by 15–25% — a direct assist for your lipid goal.',
-      howItWorks:
-        'EPA and DHA reduce the liver’s production of VLDL, the particle that carries triglycerides, and speed up clearance of the ones already in circulation.',
-      week1Plan: 'Start at week 1 (after the metformin start week) so we can attribute any stomach upset correctly. Take with lunch or dinner.',
-      faq: [
-        {
-          q: 'Fish oil gives me reflux — alternatives?',
-          a: 'Take it frozen or with the largest meal of the day; enteric-coated or algae-based versions also help. Tell us if it persists and we will switch forms.',
-        },
-      ],
-      tip: 'Store the bottle in the fridge — it slows oxidation and reduces the fishy aftertaste.',
     },
   ],
   deepDive: [
+    {
+      categoryId: 'cardiovascular',
+      categoryName: 'Cardiovascular Health',
+      status: 'at_risk',
+      narrative:
+        'At risk due to newly documented essential hypertension requiring pharmacotherapy (propranolol), complicated by concurrent stimulant use (Adderall XR) and a strong family history of cardiovascular disease. Historical 2023-11-28 labs show a prior peak of severe atherogenic dyslipidemia (LDL-C 132 mg/dL, triglycerides 292 mg/dL) that has only partially improved on the 2025-06-09 fasting panel (LDL-C 101 mg/dL, triglycerides 187 mg/dL, non-HDL 129 mg/dL). The immediate priority is obtaining objective home blood pressure data and finalizing a prevention strategy.',
+      counts: { abnormal: 8, inRange: 2, optimal: 0 },
+      biomarkers: [
+        { name: 'Triglycerides (latest 2025-06)', relevancy: 'high', value: '187', unit: 'mg/dL', referenceRange: '< 150', optimalRange: '< 100', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Insulin', relevancy: 'high', value: '27.8', unit: 'µIU/mL', referenceRange: '2–25', optimalRange: '2–8', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'LDL-Cholesterol (latest 2025-06)', relevancy: 'medium', value: '101', unit: 'mg/dL', referenceRange: '< 130', optimalRange: '< 80', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'LDL-Cholesterol (baseline 2023-11)', relevancy: 'medium', value: '132', unit: 'mg/dL', referenceRange: '< 130', optimalRange: '< 80', date: '2023-11-28', flag: 'abnormal' },
+        { name: 'HDL Cholesterol (latest 2025-06)', relevancy: 'medium', value: '39', unit: 'mg/dL', referenceRange: '> 40', optimalRange: '60–90', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Non-HDL Cholesterol (baseline 2023-11)', relevancy: 'medium', value: '232', unit: 'mg/dL', referenceRange: '< 160', optimalRange: '< 130', date: '2023-11-28', flag: 'abnormal' },
+        { name: 'Non-HDL Cholesterol (latest 2025-06)', relevancy: 'medium', value: '129', unit: 'mg/dL', referenceRange: '< 160', optimalRange: '< 130', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Hemoglobin A1c (baseline 2025-03)', relevancy: 'medium', value: '5.7', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-03-27', flag: 'abnormal' },
+        { name: 'Hemoglobin A1c (latest 2025-06)', relevancy: 'medium', value: '5.5', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-06-08', flag: 'in_range' },
+        { name: 'Glucose (latest 2025-06)', relevancy: 'medium', value: '98', unit: 'mg/dL', referenceRange: '65–99', optimalRange: '80–90', date: '2025-06-08', flag: 'in_range' },
+      ],
+    },
     {
       categoryId: 'metabolic',
       categoryName: 'Metabolic Health',
       status: 'at_risk',
       narrative:
-        'Your fasting insulin of 27.8 µIU/mL is roughly three times the optimal level, while glucose (104 mg/dL) and A1c (5.5%) are only slightly above ideal. This combination — high insulin holding near-normal sugar — is the earliest and most reversible stage of insulin resistance.',
-      counts: { abnormal: 2, inRange: 1, optimal: 0 },
+        'At risk, driven by a chronic hyperinsulinemic insulin-resistance pattern. The most recent fasting draw (2025-06-09) showed insulin 27.8 µIU/mL, with glucose 98 mg/dL, HbA1c 5.5%, triglycerides 187 mg/dL, HDL-C 39 mg/dL, and LDL-C 101 mg/dL. Newly integrated historical data from late 2023 reveals this is a long-standing issue, previously manifesting as severe hypertriglyceridemia (292 mg/dL) and elevated ALT (85 U/L), strongly suggesting hepatic insulin resistance and metabolic-associated steatotic liver disease (MASLD). While HbA1c does not yet meet the pre-diabetes threshold, the dominant signal of compensatory hyperinsulinemia persists; confirm with repeat fasting metabolic labs.',
+      counts: { abnormal: 6, inRange: 2, optimal: 0 },
       biomarkers: [
-        { name: 'Fasting Insulin', relevancy: 'high', value: '27.8', unit: 'µIU/mL', referenceRange: '2.6–24.9', optimalRange: '≤ 8.0', date: '2026-07-14', flag: 'abnormal' },
-        { name: 'Fasting Glucose', relevancy: 'high', value: '104', unit: 'mg/dL', referenceRange: '70–99', optimalRange: '75–90', date: '2026-07-14', flag: 'abnormal' },
-        { name: 'HbA1c', relevancy: 'medium', value: '5.5', unit: '%', referenceRange: '< 5.7', optimalRange: '< 5.4', date: '2026-07-14', flag: 'in_range' },
+        { name: 'Insulin', relevancy: 'high', value: '27.8', unit: 'µIU/mL', referenceRange: '2–25', optimalRange: '2–8', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'Triglycerides (baseline 2023-11)', relevancy: 'high', value: '292', unit: 'mg/dL', referenceRange: '< 150', optimalRange: '< 100', date: '2023-11-28', flag: 'abnormal' },
+        { name: 'Triglycerides (latest 2025-06)', relevancy: 'high', value: '187', unit: 'mg/dL', referenceRange: '< 150', optimalRange: '< 100', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'ALT (baseline 2023-11)', relevancy: 'high', value: '85', unit: 'U/L', referenceRange: '< 35', optimalRange: '< 25', date: '2023-11-28', flag: 'abnormal' },
+        { name: 'Hemoglobin A1c (latest 2025-06)', relevancy: 'medium', value: '5.5', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'HDL Cholesterol', relevancy: 'medium', value: '39', unit: 'mg/dL', referenceRange: '> 40', optimalRange: '60–90', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'LDL-Cholesterol', relevancy: 'medium', value: '101', unit: 'mg/dL', referenceRange: '< 130', optimalRange: '< 80', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Glucose', relevancy: 'medium', value: '98', unit: 'mg/dL', referenceRange: '65–99', optimalRange: '80–90', date: '2025-06-08', flag: 'in_range' },
+        { name: 'hs-CRP', relevancy: 'low', value: '0.5', unit: 'mg/L', referenceRange: '< 1', optimalRange: '< 1', date: '2025-06-08', flag: 'in_range' },
       ],
     },
     {
-      categoryId: 'cardiovascular',
-      categoryName: 'Cardiovascular Health',
+      categoryId: 'musculoskeletal',
+      categoryName: 'Musculoskeletal Health',
+      status: 'at_risk',
+      narrative:
+        'Risk is driven by active joint pathology, specifically the newly documented bilateral primary osteoarthritis of the knees and a history of multiple arthroscopies. The patient’s regular gym training (3 days/week) is a strong protective factor for muscle preservation and joint stabilization. Available 2025 laboratory data are modestly reassuring for mineral homeostasis and inflammatory burden: calcium remained normal at 9.7 mg/dL, alkaline phosphatase was low-normal at 43 U/L, and hs-CRP was low at 0.5 mg/L. However, core longevity metrics — 25-OH vitamin D, PTH, DXA for bone density, and objective functional strength testing — remain absent, leaving bone and muscle reserve incompletely characterized.',
+      counts: { abnormal: 2, inRange: 4, optimal: 0 },
+      biomarkers: [
+        { name: 'Calcium (latest 2025-06)', relevancy: 'medium', value: '9.7', unit: 'mg/dL', referenceRange: '8.6–10.2', optimalRange: '8.2–9.8', date: '2025-06-08', flag: 'in_range' },
+        { name: 'Calcium (baseline 2023-11)', relevancy: 'medium', value: '10.2', unit: 'mg/dL', referenceRange: '8.6–10.2', optimalRange: '8.2–9.8', date: '2023-11-28', flag: 'abnormal' },
+        { name: 'hs-CRP', relevancy: 'medium', value: '0.5', unit: 'mg/L', referenceRange: '< 1', optimalRange: '< 1', date: '2025-06-08', flag: 'in_range' },
+        { name: 'Alkaline Phosphatase (latest 2025-06)', relevancy: 'low', value: '43', unit: 'U/L', referenceRange: '44–147', optimalRange: '50–90', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'Alkaline Phosphatase (baseline 2023-11)', relevancy: 'low', value: '123', unit: 'U/L', referenceRange: '44–147', optimalRange: '50–90', date: '2023-11-28', flag: 'in_range' },
+        { name: 'Creatinine (latest 2025-06)', relevancy: 'low', value: '1.33', unit: 'mg/dL', referenceRange: '0.8–1.3', optimalRange: '0.8–1.1', date: '2025-06-08', flag: 'in_range' },
+      ],
+    },
+    {
+      categoryId: 'brain',
+      categoryName: 'Brain Health',
+      status: 'at_risk',
+      narrative:
+        'Cognitive health is dominated by an active neuropsychiatric profile requiring polypharmacy (Adderall XR, citalopram, bupropion) for ADHD and depression, alongside migraine management (propranolol) and nightly THC use. This neuroactive medication burden is compounded by essential hypertension and a persistent vascular-metabolic risk pattern (fasting insulin 27.8 µIU/mL, triglycerides 187 mg/dL, LDL-C 101 mg/dL). While glycemic control has improved (HbA1c 5.5%) and systemic inflammation is low (hs-CRP 0.5 mg/L), the primary drivers remain sub-clinical vascular risk and central adiposity. Comprehensive medication reconciliation, strict blood pressure monitoring, and targeted lifestyle interventions are critical.',
+      counts: { abnormal: 5, inRange: 4, optimal: 0 },
+      biomarkers: [
+        { name: 'Insulin', relevancy: 'high', value: '27.8', unit: 'µIU/mL', referenceRange: '2–25', optimalRange: '2–8', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'Triglycerides', relevancy: 'high', value: '187', unit: 'mg/dL', referenceRange: '< 150', optimalRange: '< 100', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Hemoglobin A1c (baseline 2025-03)', relevancy: 'medium', value: '5.7', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-03-27', flag: 'abnormal' },
+        { name: 'HDL Cholesterol', relevancy: 'medium', value: '39', unit: 'mg/dL', referenceRange: '> 40', optimalRange: '60–90', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Hemoglobin A1c (latest 2025-06)', relevancy: 'medium', value: '5.5', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'LDL-Cholesterol', relevancy: 'medium', value: '101', unit: 'mg/dL', referenceRange: '< 130', optimalRange: '< 80', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Glucose', relevancy: 'medium', value: '98', unit: 'mg/dL', referenceRange: '65–99', optimalRange: '80–90', date: '2025-06-08', flag: 'in_range' },
+        { name: 'hs-CRP', relevancy: 'low', value: '0.5', unit: 'mg/L', referenceRange: '< 1', optimalRange: '< 1', date: '2025-06-08', flag: 'in_range' },
+        { name: 'TSH (baseline 2025-03)', relevancy: 'low', value: '1.21', unit: 'mIU/L', referenceRange: '0.4–4.5', optimalRange: '0.5–2.5', date: '2025-03-27', flag: 'in_range' },
+        { name: 'TSH (latest 2025-06)', relevancy: 'low', value: '1.72', unit: 'mIU/L', referenceRange: '0.4–4.5', optimalRange: '0.5–2.5', date: '2025-06-08', flag: 'in_range' },
+      ],
+    },
+    {
+      categoryId: 'emotional_social',
+      categoryName: 'Emotional & Social Health',
+      status: 'at_risk',
+      narrative:
+        'Notable for active depression and attention-deficit hyperactivity disorder (ADHD), currently managed with a multi-drug regimen including citalopram, bupropion SR, and Adderall XR. The 2025-08-15 clinic facesheet also documents nightly THC use, which warrants careful monitoring given its potential to interact with psychiatric medications, impact sleep architecture, and exacerbate underlying mood or cognitive symptoms. As a patient who is divorced with two children, he likely faces significant occupational and psychosocial stressors. A family history of depression and anxiety on both sides further elevates risk. Comprehensive behavioral health follow-up is recommended to optimize the pharmacologic regimen, assess the efficacy of current therapies, and evaluate the impact of THC use.',
+      counts: { abnormal: 0, inRange: 2, optimal: 0 },
+      biomarkers: [
+        { name: 'TSH (baseline 2025-03)', relevancy: 'low', value: '1.21', unit: 'mIU/L', referenceRange: '0.4–4.5', optimalRange: '0.5–2.5', date: '2025-03-27', flag: 'in_range' },
+        { name: 'TSH (latest 2025-06)', relevancy: 'low', value: '1.72', unit: 'mIU/L', referenceRange: '0.4–4.5', optimalRange: '0.5–2.5', date: '2025-06-08', flag: 'in_range' },
+      ],
+    },
+    {
+      categoryId: 'thyroid_hormone',
+      categoryName: 'Thyroid & Hormone Health',
       status: 'needs_attention',
       narrative:
-        'Triglycerides of 187 mg/dL with HDL of 39 mg/dL is the lipid signature of insulin resistance rather than a primary cholesterol problem. LDL at 101 mg/dL is acceptable. Expect this whole panel to improve together as insulin comes down.',
-      counts: { abnormal: 2, inRange: 2, optimal: 0 },
+        'Thyroid signal is reassuring but incomplete: TSH was optimal at 1.21 mIU/L (2025-03-27) and 1.72 mIU/L (2025-06-08), with no free-hormone data. The dominant endocrine feature is the male reproductive axis, where the previously noted volatility across spring 2025 is now clearly explained by the August 2025 clinic facesheet documenting hypogonadism on active enclomiphene. The rise in total testosterone from 393 to 728 ng/dL, accompanied by elevated LH, FSH, and estradiol, represents the expected physiologic response to selective estrogen receptor modulator (SERM) therapy rather than an unstable endogenous axis. Ongoing surveillance is required to ensure clinical optimization and monitor for SERM-related effects.',
+      counts: { abnormal: 6, inRange: 3, optimal: 0 },
       biomarkers: [
-        { name: 'Triglycerides', relevancy: 'high', value: '187', unit: 'mg/dL', referenceRange: '< 150', optimalRange: '< 100', date: '2026-07-14', flag: 'abnormal' },
-        { name: 'HDL Cholesterol', relevancy: 'high', value: '39', unit: 'mg/dL', referenceRange: '> 40', optimalRange: '> 50', date: '2026-07-14', flag: 'abnormal' },
-        { name: 'LDL Cholesterol', relevancy: 'medium', value: '101', unit: 'mg/dL', referenceRange: '< 130', optimalRange: '< 100', date: '2026-07-14', flag: 'in_range' },
-        { name: 'Total Cholesterol', relevancy: 'low', value: '178', unit: 'mg/dL', referenceRange: '< 200', optimalRange: '150–180', date: '2026-07-14', flag: 'in_range' },
+        { name: 'LH (latest 2025-06)', relevancy: 'high', value: '14.8', unit: 'mIU/mL', referenceRange: '1.7–8.6', optimalRange: '3–7', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'FSH (latest 2025-06)', relevancy: 'high', value: '16.7', unit: 'mIU/mL', referenceRange: '1.5–12.4', optimalRange: '2–8', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Testosterone, Total (baseline 2025-03)', relevancy: 'high', value: '393', unit: 'ng/dL', referenceRange: '264–916', optimalRange: '500–900', date: '2025-03-27', flag: 'abnormal' },
+        { name: 'Testosterone, Total (latest 2025-06)', relevancy: 'high', value: '728', unit: 'ng/dL', referenceRange: '264–916', optimalRange: '500–900', date: '2025-06-09', flag: 'in_range' },
+        { name: 'Testosterone, Free', relevancy: 'high', value: '133.6', unit: 'pg/mL', referenceRange: '35–155', optimalRange: '> 100', date: '2025-06-09', flag: 'in_range' },
+        { name: 'Estradiol (latest 2025-06)', relevancy: 'high', value: '53', unit: 'pg/mL', referenceRange: '10–40', optimalRange: '10–30', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Estradiol (baseline 2025-03)', relevancy: 'medium', value: '63', unit: 'pg/mL', referenceRange: '10–40', optimalRange: '10–30', date: '2025-03-27', flag: 'abnormal' },
+        { name: 'Sex Hormone Binding Globulin (latest 2025-06)', relevancy: 'medium', value: '24', unit: 'nmol/L', referenceRange: '10–57', optimalRange: '30–40', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'TSH (latest 2025-06)', relevancy: 'medium', value: '1.72', unit: 'mIU/L', referenceRange: '0.4–4.5', optimalRange: '0.5–2.5', date: '2025-06-08', flag: 'in_range' },
+      ],
+    },
+    {
+      categoryId: 'liver',
+      categoryName: 'Liver Health',
+      status: 'needs_attention',
+      narrative:
+        'While the 2025 hepatic panel shows no active hepatocellular injury or synthetic dysfunction, newly integrated historical data from late 2023 reveals a prior ALT elevation of 85 U/L paired with severe hypertriglyceridemia. The current dominant issue remains probable metabolic-associated steatotic liver disease (MASLD) risk, driven by fasting insulin of 27.8 µIU/mL, triglycerides of 187 mg/dL, and low HDL-C. The patient is also on a complex medication regimen (bupropion, citalopram, Adderall, propranolol, enclomiphene) alongside nightly THC use, all of which require hepatic vigilance. Because the most recent normal labs are now roughly a year old, a repeat hepatic panel (including GGT) and a first-line steatosis evaluation (ultrasound or FibroScan) are warranted.',
+      counts: { abnormal: 4, inRange: 6, optimal: 0 },
+      biomarkers: [
+        { name: 'Insulin', relevancy: 'high', value: '27.8', unit: 'µIU/mL', referenceRange: '2–25', optimalRange: '2–8', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'Triglycerides', relevancy: 'high', value: '187', unit: 'mg/dL', referenceRange: '< 150', optimalRange: '< 100', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'ALT (baseline 2023-11)', relevancy: 'high', value: '85', unit: 'U/L', referenceRange: '< 35', optimalRange: '< 25', date: '2023-11-28', flag: 'abnormal' },
+        { name: 'ALT (latest 2025-06)', relevancy: 'high', value: '20', unit: 'U/L', referenceRange: '< 35', optimalRange: '< 25', date: '2025-06-09', flag: 'in_range' },
+        { name: 'AST (latest 2025-06)', relevancy: 'high', value: '22', unit: 'U/L', referenceRange: '< 35', optimalRange: '< 25', date: '2025-06-09', flag: 'in_range' },
+        { name: 'Hemoglobin A1c', relevancy: 'medium', value: '5.5', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'Bilirubin, total (latest 2025-06)', relevancy: 'medium', value: '0.3', unit: 'mg/dL', referenceRange: '0.2–1.2', optimalRange: '< 1', date: '2025-06-08', flag: 'in_range' },
+        { name: 'Albumin', relevancy: 'medium', value: '4.3', unit: 'g/dL', referenceRange: '3.5–5.5', optimalRange: '4.2–4.8', date: '2025-06-08', flag: 'in_range' },
+        { name: 'Platelet count', relevancy: 'medium', value: '233', unit: 'K/µL', referenceRange: '150–450', optimalRange: '200–300', date: '2025-06-08', flag: 'in_range' },
+        { name: 'HDL cholesterol', relevancy: 'low', value: '39', unit: 'mg/dL', referenceRange: '> 40', optimalRange: '60–90', date: '2025-06-09', flag: 'abnormal' },
       ],
     },
     {
       categoryId: 'kidney',
-      categoryName: 'Kidney Function',
+      categoryName: 'Kidney Health',
       status: 'needs_attention',
       narrative:
-        'Your eGFR of 66 indicates mildly reduced filtration — common at your age, but worth protecting, especially while taking metformin. Creatinine is at the high end of normal. Hydration and blood-pressure control are the levers here.',
-      counts: { abnormal: 1, inRange: 2, optimal: 0 },
+        'Kidney function is not frankly failing, but it is suboptimal for longevity and compounded by newly documented risk factors. Creatinine remained mildly elevated across 2025 and creatinine-based eGFR was 58 mL/min/1.73m² in March 2025, improving to 66 by June 2025 and plateauing there. Historical 2023 laboratory data confirm this is a chronic pattern. For a 49-year-old man, an eGFR in the mid-60s is below ideal. A spot urine albumin-creatinine ratio, urinalysis, and blood pressure logs are needed to distinguish benign creatinine elevation from early CKD and to set a nephroprotection plan.',
+      counts: { abnormal: 4, inRange: 5, optimal: 0 },
       biomarkers: [
-        { name: 'eGFR', relevancy: 'high', value: '66', unit: 'mL/min/1.73m²', referenceRange: '≥ 90', optimalRange: '≥ 90', date: '2026-07-14', flag: 'abnormal' },
-        { name: 'Creatinine', relevancy: 'medium', value: '1.33', unit: 'mg/dL', referenceRange: '0.74–1.35', optimalRange: '0.80–1.10', date: '2026-07-14', flag: 'in_range' },
-        { name: 'BUN', relevancy: 'low', value: '19', unit: 'mg/dL', referenceRange: '7–20', optimalRange: '10–18', date: '2026-07-14', flag: 'in_range' },
+        { name: 'Creatinine (baseline 2025-03)', relevancy: 'high', value: '1.48', unit: 'mg/dL', referenceRange: '0.8–1.3', optimalRange: '0.8–1.1', date: '2025-03-27', flag: 'abnormal' },
+        { name: 'Creatinine (latest 2025-06)', relevancy: 'high', value: '1.33', unit: 'mg/dL', referenceRange: '0.8–1.3', optimalRange: '0.8–1.1', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'eGFR (latest 2025-06)', relevancy: 'high', value: '66', unit: 'mL/min/1.73m²', referenceRange: '< 90', optimalRange: '> 90', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'eGFR (baseline 2025-03)', relevancy: 'high', value: '58', unit: 'mL/min/1.73m²', referenceRange: '< 90', optimalRange: '> 90', date: '2025-03-27', flag: 'abnormal' },
+        { name: 'Urea Nitrogen (BUN)', relevancy: 'medium', value: '18', unit: 'mg/dL', referenceRange: '7–20', optimalRange: '10–18', date: '2025-06-08', flag: 'in_range' },
+        { name: 'Potassium', relevancy: 'medium', value: '4.8', unit: 'mmol/L', referenceRange: '3.5–5.1', optimalRange: '4–4.5', date: '2025-06-08', flag: 'in_range' },
+        { name: 'Carbon Dioxide', relevancy: 'medium', value: '26', unit: 'mmol/L', referenceRange: '22–30', optimalRange: '24–28', date: '2025-06-08', flag: 'in_range' },
+        { name: 'Hemoglobin A1c', relevancy: 'medium', value: '5.5', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-06-08', flag: 'in_range' },
+        { name: 'Sodium', relevancy: 'low', value: '141', unit: 'mmol/L', referenceRange: '136–145', optimalRange: '140–144', date: '2025-06-08', flag: 'in_range' },
       ],
     },
     {
-      categoryId: 'hormonal',
-      categoryName: 'Hormonal Health',
+      categoryId: 'nutrition',
+      categoryName: 'Nutrition & Vitamins',
       status: 'needs_attention',
       narrative:
-        'Estradiol at 53 pg/mL is above the typical male range — a common finding alongside insulin resistance, since fat tissue converts testosterone to estradiol. Testosterone itself is solid. We expect estradiol to normalize as body composition improves; no medication is warranted now.',
-      counts: { abnormal: 1, inRange: 0, optimal: 1 },
+        'Nutrition status cannot be fully characterized because core micronutrient labs are absent, but the longitudinal metabolic pattern points to dominant nutritional optimization needs. The newly integrated 2023-11-28 data shows severe historical hypertriglyceridemia (292 mg/dL) that has partially improved by 2025-06-09 (187 mg/dL), yet fasting insulin remains markedly elevated at 27.8 µIU/mL. This is consistent with an insulin-resistant, atherogenic nutritional pattern (elevated HbA1c 5.5%, low HDL). Key mineral and micronutrient targets (vitamin D, B12, magnesium, iron, folate, omega-3) remain untested; confirmation testing is warranted.',
+      counts: { abnormal: 6, inRange: 3, optimal: 0 },
       biomarkers: [
-        { name: 'Estradiol', relevancy: 'medium', value: '53', unit: 'pg/mL', referenceRange: '10–40', optimalRange: '20–35', date: '2026-07-14', flag: 'abnormal' },
-        { name: 'Total Testosterone', relevancy: 'high', value: '512', unit: 'ng/dL', referenceRange: '300–1000', optimalRange: '500–900', date: '2026-07-14', flag: 'optimal' },
+        { name: 'Insulin', relevancy: 'high', value: '27.8', unit: 'µIU/mL', referenceRange: '2–25', optimalRange: '2–8', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'Triglycerides (baseline 2023-11)', relevancy: 'high', value: '292', unit: 'mg/dL', referenceRange: '< 150', optimalRange: '< 100', date: '2023-11-28', flag: 'abnormal' },
+        { name: 'Triglycerides (latest 2025-06)', relevancy: 'high', value: '187', unit: 'mg/dL', referenceRange: '< 150', optimalRange: '< 100', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Hemoglobin A1c (baseline 2025-03)', relevancy: 'high', value: '5.7', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-03-27', flag: 'abnormal' },
+        { name: 'Hemoglobin A1c (latest 2025-06)', relevancy: 'medium', value: '5.5', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'Glucose', relevancy: 'medium', value: '98', unit: 'mg/dL', referenceRange: '65–99', optimalRange: '80–90', date: '2025-06-08', flag: 'in_range' },
+        { name: 'hs-CRP', relevancy: 'medium', value: '0.5', unit: 'mg/L', referenceRange: '< 1', optimalRange: '< 1', date: '2025-06-08', flag: 'in_range' },
+        { name: 'LDL Cholesterol (baseline 2023-11)', relevancy: 'low', value: '132', unit: 'mg/dL', referenceRange: '< 130', optimalRange: '< 100', date: '2023-11-28', flag: 'abnormal' },
+        { name: 'Non-HDL Cholesterol (latest 2025-06)', relevancy: 'low', value: '129', unit: 'mg/dL', referenceRange: '< 160', optimalRange: '< 130', date: '2025-06-09', flag: 'in_range' },
       ],
     },
     {
       categoryId: 'inflammation',
       categoryName: 'Inflammation',
+      status: 'needs_attention',
+      narrative:
+        'Measured systemic inflammation via hs-CRP appears low (0.5 mg/L) on 2025-06-08, but the August 2025 clinic facesheet documents a diagnosis of psoriasis, indicating an active systemic autoimmune and inflammatory process. The inflammatory context is further complicated by metabolic drivers: fasting insulin 27.8 µIU/mL, triglycerides 187 mg/dL, and low HDL 39 mg/dL support a metabolic-inflammation pattern. The presence of clinical psoriasis and metabolic dysregulation precludes an optimal rating despite the low hs-CRP. Repeat hs-CRP with broader inflammatory characterization (ESR, ferritin) is warranted.',
+      counts: { abnormal: 4, inRange: 4, optimal: 0 },
+      biomarkers: [
+        { name: 'Insulin', relevancy: 'high', value: '27.8', unit: 'µIU/mL', referenceRange: '2–25', optimalRange: '2–8', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'hs-CRP', relevancy: 'high', value: '0.5', unit: 'mg/L', referenceRange: '< 1', optimalRange: '< 1', date: '2025-06-08', flag: 'in_range' },
+        { name: 'Triglycerides (baseline 2023-11)', relevancy: 'medium', value: '292', unit: 'mg/dL', referenceRange: '< 150', optimalRange: '< 100', date: '2023-11-28', flag: 'abnormal' },
+        { name: 'Triglycerides (latest 2025-06)', relevancy: 'medium', value: '187', unit: 'mg/dL', referenceRange: '< 150', optimalRange: '< 100', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Hemoglobin A1c (baseline 2025-03)', relevancy: 'medium', value: '5.7', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-03-27', flag: 'abnormal' },
+        { name: 'HDL Cholesterol (latest 2025-06)', relevancy: 'medium', value: '39', unit: 'mg/dL', referenceRange: '> 40', optimalRange: '60–90', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Hemoglobin A1c (latest 2025-06)', relevancy: 'medium', value: '5.5', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-06-08', flag: 'in_range' },
+        { name: 'White Blood Cell Count (latest 2025-06)', relevancy: 'low', value: '6.9', unit: 'K/µL', referenceRange: '4–11', optimalRange: '5–7', date: '2025-06-08', flag: 'in_range' },
+      ],
+    },
+    {
+      categoryId: 'sleep',
+      categoryName: 'Sleep Health',
+      status: 'needs_attention',
+      narrative:
+        'While direct sleep metrics remain absent, data from the August 2025 clinic facesheet reveals a potent combination of sleep-disrupting pharmacological and lifestyle exposures. The patient uses nightly THC and citalopram (both established REM-sleep suppressors), alongside Adderall XR and bupropion SR (which increase hyperarousal and the risk of sleep-onset/maintenance insomnia), and propranolol (which can suppress endogenous melatonin). Combined with the established 2025 metabolic pattern of hyperinsulinemia and dyslipidemia, this profile strongly suggests compromised sleep architecture. Comprehensive sleep assessment, including architecture evaluation and OSA screening, is highly indicated.',
+      counts: { abnormal: 3, inRange: 3, optimal: 0 },
+      biomarkers: [
+        { name: 'Insulin', relevancy: 'medium', value: '27.8', unit: 'µIU/mL', referenceRange: '2–25', optimalRange: '2–8', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'Triglycerides', relevancy: 'medium', value: '187', unit: 'mg/dL', referenceRange: '< 150', optimalRange: '< 100', date: '2025-06-09', flag: 'abnormal' },
+        { name: 'Hemoglobin A1c (latest 2025-06)', relevancy: 'medium', value: '5.5', unit: '%', referenceRange: '4–5.6', optimalRange: '4.8–5.2', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'HDL Cholesterol', relevancy: 'low', value: '39', unit: 'mg/dL', referenceRange: '> 40', optimalRange: '60–90', date: '2025-06-09', flag: 'in_range' },
+        { name: 'TSH (baseline 2025-03)', relevancy: 'low', value: '1.21', unit: 'mIU/L', referenceRange: '0.4–4.5', optimalRange: '0.5–2.5', date: '2025-03-27', flag: 'in_range' },
+        { name: 'TSH (latest 2025-06)', relevancy: 'low', value: '1.72', unit: 'mIU/L', referenceRange: '0.4–4.5', optimalRange: '0.5–2.5', date: '2025-06-08', flag: 'in_range' },
+      ],
+    },
+    {
+      categoryId: 'skin',
+      categoryName: 'Skin Health',
+      status: 'needs_attention',
+      narrative:
+        'The recent clinic facesheet documents a diagnosis of psoriasis, establishing an active inflammatory skin condition that requires targeted management and surveillance. While systemic inflammation appears low (hs-CRP 0.5 mg/L), persistent hyperinsulinemia (fasting insulin 27.8 µIU/mL) is a recognized comorbidity and metabolic driver that can exacerbate inflammatory dermatoses and shape tissue repair. A comprehensive dermatology evaluation is warranted to stage the psoriasis, review UV-exposure history, and perform a full-body skin cancer screening.',
+      counts: { abnormal: 1, inRange: 1, optimal: 0 },
+      biomarkers: [
+        { name: 'Insulin', relevancy: 'medium', value: '27.8', unit: 'µIU/mL', referenceRange: '2–25', optimalRange: '2–8', date: '2025-06-08', flag: 'abnormal' },
+        { name: 'hs-CRP', relevancy: 'low', value: '0.5', unit: 'mg/L', referenceRange: '< 1', optimalRange: '< 1', date: '2025-06-08', flag: 'in_range' },
+      ],
+    },
+    {
+      categoryId: 'blood',
+      categoryName: 'Blood Health',
       status: 'optimal',
       narrative:
-        'Inflammation markers are excellent. hs-CRP under 1.0 puts you in the lowest cardiovascular-risk tertile for this marker — a genuine strength to build on.',
-      counts: { abnormal: 0, inRange: 1, optimal: 1 },
+        'Blood counts are reassuring: CBC markers from 2025-06-09, now slightly beyond the usual 12-month cadence, show no anemia, leukocyte abnormality, or platelet disorder, and the historical trend back to 2023 is stable. Hemoglobin 15.0 g/dL, hematocrit 45.3%, WBC 6.9 K/µL, and platelets 233 K/µL support a currently preserved hematologic status. Still, iron stores and hematinic status were not assessed; ferritin, an iron panel, B12, folate, and ideally a CBC differential should be added on the next draw to confirm the normal CBC is durable and nutritionally supported.',
+      counts: { abnormal: 0, inRange: 1, optimal: 4 },
       biomarkers: [
-        { name: 'hs-CRP', relevancy: 'high', value: '0.9', unit: 'mg/L', referenceRange: '< 3.0', optimalRange: '< 1.0', date: '2026-07-14', flag: 'optimal' },
-        { name: 'Homocysteine', relevancy: 'low', value: '9.2', unit: 'µmol/L', referenceRange: '< 15', optimalRange: '< 10', date: '2026-07-14', flag: 'in_range' },
+        { name: 'Hemoglobin (latest 2025-06)', relevancy: 'high', value: '15.0', unit: 'g/dL', referenceRange: '13.5–17.5', optimalRange: '14–16', date: '2025-06-08', flag: 'optimal' },
+        { name: 'Hemoglobin (baseline 2025-03)', relevancy: 'high', value: '15.6', unit: 'g/dL', referenceRange: '13.5–17.5', optimalRange: '14–16', date: '2025-03-27', flag: 'in_range' },
+        { name: 'Hematocrit (latest 2025-06)', relevancy: 'medium', value: '45.3', unit: '%', referenceRange: '38.5–50', optimalRange: '42–48', date: '2025-06-08', flag: 'optimal' },
+        { name: 'White Blood Cell Count', relevancy: 'low', value: '6.9', unit: 'K/µL', referenceRange: '4–11', optimalRange: '5–7', date: '2025-06-08', flag: 'optimal' },
+        { name: 'Platelet Count', relevancy: 'low', value: '233', unit: 'K/µL', referenceRange: '150–450', optimalRange: '200–300', date: '2025-06-08', flag: 'optimal' },
       ],
+    },
+    {
+      categoryId: 'cancer_screening',
+      categoryName: 'Cancer Screening',
+      status: 'optimal',
+      narrative:
+        'Cancer screening status is now partially documented and up to date for the most critical age-appropriate metric. The patient completed a normal screening colonoscopy in 2020, satisfying colorectal screening requirements until 2030. However, new family history data reveals pancreatic cancer (paternal grandfather), breast cancer (mother), and leukemia (paternal grandmother). This pedigree warrants a formal hereditary cancer risk assessment to determine whether genetic testing or earlier/enhanced surveillance is indicated. As the patient approaches age 50, a shared decision-making discussion regarding baseline PSA testing for prostate cancer screening is also due. The patient is a non-smoker and is not eligible for low-dose CT lung cancer screening.',
+      counts: { abnormal: 0, inRange: 0, optimal: 0 },
+      biomarkers: [],
     },
   ],
 }
@@ -357,14 +635,14 @@ export function lightReport(name: string, sex: 'male' | 'female', age: number): 
   return {
     meta: {
       patient: { name, sex, age },
-      preparedBy: 'Dr. Adina Doron, MD',
+      preparedBy: 'Dr. Doron',
       assessmentDate: '2026-07-08',
       generatedDate: '2026-07-10',
     },
     healthStatus: {
       narrative:
         'Overall an excellent assessment. One area — vitamin D — needs a simple correction; everything else is in range or optimal. No medications are indicated.',
-      authorName: 'Dr. Adina Doron, MD',
+      authorName: 'Dr. Doron',
     },
     story: [], // intentionally empty — the story section should be skipped
     goals: [

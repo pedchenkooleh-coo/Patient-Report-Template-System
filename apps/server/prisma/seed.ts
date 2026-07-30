@@ -109,9 +109,10 @@ async function main() {
 
   const fullReport = ReportDataSchema.parse(FULL_REPORT)
 
-  // Clinic A patients
+  // Clinic A patients. Marcus is the full, PDF-modeled report (synthetic name,
+  // age/dates matching the reference report header).
   const marcusA = await prisma.patient.create({
-    data: { clinicId: doron.id, name: 'Marcus Ellison', sex: 'male', age: 52 },
+    data: { clinicId: doron.id, name: 'Marcus Ellison', sex: 'male', age: 49 },
   })
   const lena = await prisma.patient.create({
     data: { clinicId: doron.id, name: 'Lena Fischer', sex: 'female', age: 44 },
@@ -120,15 +121,15 @@ async function main() {
   // Clinic B patients — Marcus's data is duplicated so the template
   // difference between the two clinics is obvious on identical data.
   const marcusB = await prisma.patient.create({
-    data: { clinicId: northside.id, name: 'Marcus Ellison', sex: 'male', age: 52 },
+    data: { clinicId: northside.id, name: 'Marcus Ellison', sex: 'male', age: 49 },
   })
   const tomas = await prisma.patient.create({
     data: { clinicId: northside.id, name: 'Tomás Rivera', sex: 'male', age: 61 },
   })
 
   const fullDates = {
-    assessmentDate: new Date('2026-07-14'),
-    generatedDate: new Date('2026-07-21'),
+    assessmentDate: new Date('2026-06-29'),
+    generatedDate: new Date('2026-06-29'),
   }
   const lightDates = {
     assessmentDate: new Date('2026-07-08'),
