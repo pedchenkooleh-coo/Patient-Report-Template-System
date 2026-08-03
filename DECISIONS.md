@@ -62,6 +62,62 @@ Forward compatibility is layered so old and new clients can coexist:
    section has an error boundary. A config from the future degrades gracefully instead of
    white-screening a patient report.
 
+## Draft / publish + version history (enhancement round)
+
+Editing a template used to mutate the config that patient reports render — a live template
+was one careless save away from a broken patient-facing document. That is unacceptable for a
+clinical artifact, so templates now have an explicit lifecycle:
+
+- `config` is the editable **draft**; `publishedConfig` is what patient reports render.
+- **Publish** re-validates the draft, copies it to `publishedConfig`, and writes an immutable
+  `TemplateVersion` snapshot. Reports change *only* on publish.
+- `version` counts draft saves; `publishedVersion` marks the live snapshot;
+  `hasUnpublishedChanges` drives the editor's status pill and the list badges.
+- **Rollback** restores a snapshot into the draft (not straight to live) so it can be
+  reviewed and re-published — safer than a one-click revert of the patient-facing config.
+
+Why a snapshot table rather than a diff/event log: snapshots are trivially correct to restore
+and render (no replay), storage is negligible at this scale, and "show me exactly what v3
+looked like" is O(1). A diff/CRDT approach buys concurrent editing we don't need yet.
+
+`AuditEvent` is an append-only, per-clinic trail for every mutation (create/edit/publish/
+restore/setDefault/delete, patient and report changes, share create/revoke). It's the
+skeleton a real compliance audit log grows into; here it powers the Activity page.
+
+## Per-patient template assignment vs the default
+
+Reports resolve a template in priority order: `?templateId=` override (preview) →
+patient-assigned template → clinic default → `BASE_TEMPLATE` fallback. The assignment is a
+nullable `Patient.templateId` rather than a hard FK: deleting a template clears dangling
+assignments (and they'd fall back to the default anyway), so a delete can never orphan a
+patient into an unrenderable state.
+
+## Public share links
+
+A share link is an unguessable token (`randomBytes(24)`) that resolves — through the one
+endpoint mounted *before* the clinic-auth middleware — to a read-only `{ report, template }`
+for a single patient, with optional expiry and revocation. It resolves live at request time
+(current published template + latest report) rather than freezing a copy, so a re-publish or
+report edit is reflected and a revoke is immediate. A frozen point-in-time snapshot would be
+the right call once reports are legally-versioned documents; that's noted below.
+
+## Report editing as validated JSON
+
+`ReportData` is a large, deeply-nested domain object. Rather than build (and maintain) a
+bespoke form for every field, report create/edit is a single JSON editor validated against
+`ReportDataSchema` before save. It keeps the data/presentation split honest (you edit domain
+data, the template decides rendering) and is the realistic shape of an integration boundary —
+in production this endpoint is fed by an upstream system, not typed by hand. A guided form is
+a straightforward future addition on top of the same schema.
+
+## Editor UX: native drag-and-drop, undo/redo, live validation
+
+Drag-and-drop reordering uses the native HTML5 DnD API and undo/redo is a small
+past/present/future reducer — both deliberately dependency-free to keep the review surface
+small. Live validation runs the shared `TemplateConfigSchema` on every keystroke and blocks
+Save/Publish while invalid, so the server's Zod rejection is a backstop, not the first signal
+a clinician sees.
+
 ## Tenant isolation
 
 - One middleware resolves `X-Clinic-Slug` → clinic row; missing/unknown → 401.
@@ -111,24 +167,31 @@ Judgment calls made here (simpler-option rule):
 - Custom text renders a **safe markdown subset** via a ~60-line parser instead of a
   markdown dependency — clinic text is untrusted input; no raw HTML ever.
 
-## Cut for scope — what production needs
+## Delivered in the enhancement round
 
-- **Real auth/RBAC**: sessions/OIDC, clinic membership, roles (admin edits templates,
-  clinicians only render), per-patient access control and BAA-grade audit of PHI access.
-- **Draft/publish + audit log**: template edits currently apply instantly to live patient
-  reports. Production wants draft → preview → publish, an immutable version history of who
-  changed what, and rollback.
+Draft/publish + version history + rollback, an append-only audit/activity log, per-patient
+template assignment, public read-only share links, patient & report CRUD, print view, and the
+editor upgrades (drag-and-drop, undo/redo, live validation, JSON import/export, richer theme).
+These were previously on the cut list; the remaining gaps below are the honest next tier.
+
+## Still cut for scope — what production needs
+
+- **Real auth/RBAC**: sessions/OIDC, clinic membership, roles (admin edits/publishes,
+  clinicians only render), per-patient access control and BAA-grade audit of PHI access. The
+  audit log records an `actor`, but it's the clinic slug today, not an authenticated user.
+- **Optimistic concurrency**: two editors publishing the same template can clobber each other
+  — the `version` counter is the hook for an `If-Match`/conflict check, not yet enforced.
+- **Frozen share snapshots + guided report form**: share links resolve live; legally-
+  versioned patient documents want a point-in-time freeze. Report editing is raw JSON; a
+  schema-driven form is the next step.
 - **Template migration strategy as `ReportData` evolves**: schema-version registry with
   stepwise migrations (v1→v2→…) applied lazily on read and persisted on write; renamed
-  section types kept as aliases; a CI contract test that every stored template parses
-  against the current schema before deploy.
-- **i18n**: all section titles/labels through a message catalog; per-clinic locale;
-  RTL-aware layout.
-- **PDF output**: print stylesheet first, then headless-Chromium rendering of the same
-  React report (one renderer, two media) — never a second template system.
-- **Accessibility**: semantic table/heading audit, contrast checking of clinic-chosen
-  accents (compute contrast and clamp), keyboard-only pass over the editor, screen-reader
-  labels for the timeline.
-- Plus: pagination, optimistic concurrency on template saves (the row version is already
-  there), rate limiting, structured logging/observability, Postgres with native `jsonb`,
-  and real drag-and-drop reordering in the editor.
+  section types kept as aliases; a CI contract test that every stored template + published
+  snapshot parses against the current schema before deploy.
+- **i18n**: all section titles/labels through a message catalog; per-clinic locale; RTL.
+- **PDF output**: the print view is step one; headless-Chromium rendering of the same React
+  report (one renderer, two media) is the natural next step — never a second template system.
+- **Accessibility**: semantic table/heading audit, contrast-checking clinic-chosen accents
+  (compute + clamp), full keyboard/AT pass over the editor and the drag-and-drop.
+- Plus: pagination, rate limiting, structured logging/observability, Postgres with native
+  `jsonb`, and share-link analytics.

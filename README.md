@@ -1,3 +1,4 @@
+
 # Multi-tenant patient report templates
 
 Each clinic (tenant) owns its report templates; a patient's report is domain data
@@ -31,49 +32,96 @@ pnpm dev       # server on :3001 + web on :5173 (Vite proxies /api)
 Open http://localhost:5173.
 
 ```bash
-pnpm test        # ~21 tests: API + tenant isolation (supertest), schema + renderer (jsdom)
+pnpm test        # ~33 tests: API/isolation/publish/versioning/CRUD/sharing (supertest),
+                 #            schema + renderer (jsdom)
 pnpm typecheck   # tsc --noEmit in every package
 pnpm lint
 ```
 
-## Demo walkthrough — per-clinic template independence in 5 steps
+## Features
+
+Report rendering & templates
+- Template-as-data (`TemplateConfig`): ordered sections with per-type options as a Zod
+  **discriminated union**, rendered through a `Record<SectionType, Component>` registry.
+- Per-clinic independence, full tenant isolation (`X-Clinic-Slug`; cross-tenant → 404).
+- Forward-compatible configs (unknown options preserved, missing ones defaulted, unknown
+  section types skipped, per-section error boundaries).
+
+Robust editing
+- **Drag-and-drop** section reordering, duplicate/remove section, add any section type.
+- **Undo / redo** (buttons + ⌘Z / ⌘⇧Z), **live schema validation** that blocks Save/Publish.
+- **Import / export** a template as JSON; **richer theme** (accent + secondary accent, font,
+  font size, density, brand name) that visibly changes the live preview.
+
+Versioning & workflow
+- **Draft vs Published**: the editor edits a draft; patient reports render the *published*
+  config. **Publish** snapshots a version; **version history** with preview + **rollback**.
+- **Activity log**: an append-only audit trail (edits, publishes, patient/report/share
+  changes), scoped per clinic.
+
+Data management
+- **Patient CRUD** and **report editing** (validated `ReportData` JSON), **per-patient
+  template assignment** (falls back to the clinic default), search on lists.
+
+Sharing & output
+- **Public read-only share links** (unguessable token, optional expiry, revoke) at
+  `/share/:token` — no login, pinned template. **Print-optimized** report view.
+
+## Demo walkthrough — per-clinic independence + the workflow, in 7 steps
 
 1. **Doron Health, full report.** Pick *Doron Health* → *Patients* → *Marcus Ellison* →
-   *View report*. You see the full report: blue accent, comfortable spacing, all sections —
-   health status, story, 4 goals with metric tables, plan, orders, timeline, coach cards
-   (including the red medication-safety block under Metformin), full biomarker deep dive.
+   *Report*. The full report renders: blue accent, comfortable spacing, all sections —
+   health status, story, 8 goals with metric tables, plan, orders, timeline, coach cards
+   (including the red medication-safety block), and the 14-category biomarker deep dive.
 
-2. **Northside Longevity, same data, different template.** Click *Switch clinic* → pick
-   *Northside Longevity* → open *Marcus Ellison*'s report there (the seed gives clinic B a
-   patient with the **same report data**). Same patient, same numbers — but now: emerald
-   accent, serif, compact; **no story, no coach**; only **3** goals; the deep dive shows
-   **only abnormal biomarkers** with just *value / reference range / date* columns; and a
-   clinic disclaimer block appears at the end. Nothing about the patient changed — only the
-   clinic's template did.
+2. **Northside Longevity, same data, different template.** *Switch clinic* → *Northside
+   Longevity* → open *Marcus Ellison* there (the seed gives clinic B a patient with the
+   **same report data**). Same numbers, but: emerald accent, serif, compact; **no story,
+   no coach**; only **3** goals; deep dive shows **only abnormal biomarkers** with just
+   *value / reference range / date*; a clinic disclaimer closes the report. Only the
+   template changed.
 
-3. **Edit with live preview.** Still in Northside: *Templates* → *Northside Concise Report*.
-   Left panel: toggle sections, reorder with ▲▼, override titles, change per-type options,
-   pick another accent/density. The right pane re-renders a real seeded report with your
-   unsaved config instantly. Note the header toggle and the coach *Include medication safety*
-   box are disabled — those are enforced server-side too. Hit *Save* (version bumps), then
-   check the patient report: it follows the default template.
+3. **Robust editing.** *Templates* → open one. **Drag** sections to reorder, **duplicate**
+   a section, tweak theme (try a secondary accent + brand name) — the right pane updates
+   live. Break something (e.g. paste bad JSON via **JSON**) to see live validation; **undo**
+   with ⌘Z. The header toggle and coach *medication safety* are disabled (enforced
+   server-side too).
 
-4. **Create / duplicate / set default.** In *Templates*, create a template *from base* or
-   *blank* (or *Duplicate* an existing one), edit it, then *Set default*. Patient reports
-   switch immediately. On the report page you can also preview any template via the
-   *Template* dropdown (`?templateId=`) without changing the default. Deleting the default is
-   blocked with an explanation (409 on the API).
+4. **Draft vs publish.** Edit the config and **Save draft** — open the patient report: it is
+   *unchanged* (still the published version). Back in the editor, **Publish** (add a note) —
+   now the report reflects it. The status pill and the templates list show
+   *unpublished changes* → *Published vN*.
 
-5. **Prove isolation.** Switch back to *Doron Health*: its template list is untouched and
-   Marcus's report still renders the full blue layout. Clinic B never sees or edits clinic
-   A's templates — requesting another clinic's template id returns 404 (covered by tests).
+5. **Version history + rollback.** In the editor's *Version history*, **Preview** a prior
+   version in the right pane, then **Restore to draft** and Publish to roll back.
+
+6. **Patients, reports & assignment.** *Patients* → *New patient*, then *Add report* (JSON,
+   validated). **Edit** a patient to assign a specific template — the report header shows
+   *patient-assigned template*. Everything you did shows up under **Activity**.
+
+7. **Share & print.** On a report, **Share** → create a link → open `/share/:token` in a
+   private window (no login) to see the read-only patient view; **Revoke** kills it. **Print**
+   renders a clean document. Switch back to *Doron Health* to confirm its templates are
+   untouched — clinic B never sees clinic A's data (covered by tests).
 
 ## Assumptions
 
-- The reference PDF was not present in `./reference` at build time; the data shape and
-  section list were built from the task spec, with invented values in the spirit of the
-  reference case (fasting insulin 27.8 µIU/mL, TG 187, HDL 39, LDL 101, A1c 5.5%, eGFR 66,
-  creatinine 1.33, estradiol 53). All patients are synthetic.
+- Clinic A's full report is modeled faithfully on the reference report in `./reference`
+  (same sections/order, 8 goals, 7 coach cards, 14 deep-dive categories, values transcribed
+  from it). The patient is synthetic (fake name); clinic B reuses the same data to make the
+  template difference obvious.
+- **Draft/publish:** the editor edits a *draft*; patient reports render the *published*
+  config. A template with no published version yet falls back to its draft so reports still
+  render. Publishing with no changes is a 409.
+- **Per-patient template:** a patient may be assigned a specific template; otherwise the
+  report uses the clinic default, then `BASE_TEMPLATE` as a last resort. The `?templateId=`
+  query is a preview override on top of that.
+- **Share links** are read-only snapshots resolved at request time (they reflect the current
+  published template + latest report), authenticated only by an unguessable token, with
+  optional expiry and revocation.
+- Report editing and creation are exposed as **validated `ReportData` JSON** (one power-user
+  editor) rather than a bespoke form per field — the domain object is large and this keeps
+  the data/presentation split honest.
 - "Mandatory section" means a mandatory type **cannot be disabled if present**; the
   BLANK_TEMPLATE is genuinely empty (as specified), so the editor also supports adding and
   removing sections — otherwise blank templates would be uneditable.

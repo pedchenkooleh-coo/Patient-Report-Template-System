@@ -139,6 +139,21 @@ describe('ReportRenderer', () => {
     expect(screen.queryByText('Relevancy')).toBeNull()
   })
 
+  it('renders the optional theme brand name in the header', () => {
+    render(
+      <ReportRenderer
+        data={DATA}
+        config={{
+          version: 1,
+          theme: { accent: '#2563eb', font: 'serif', density: 'compact', brandName: 'Acme Clinic', fontScale: 'large' },
+          sections: [{ id: 'header', type: 'header', enabled: true, options: {} }],
+        }}
+      />,
+    )
+    expect(screen.getByText('Acme Clinic')).toBeTruthy()
+    expect(screen.getByText('Jane Test')).toBeTruthy()
+  })
+
   it('does not crash on unknown section types or unknown/missing options', () => {
     const config = baseConfig([
       { id: 'header', type: 'header', enabled: true, options: {} },

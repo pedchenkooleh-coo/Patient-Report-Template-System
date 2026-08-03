@@ -160,5 +160,154 @@ describe('GET /api/patients/:id/report', () => {
     expect(res.status).toBe(200)
     expect(res.body.report.meta.patient.name).toBe('Test Patient')
     expect(res.body.template.sections.length).toBe(BASE_TEMPLATE.sections.length)
+    expect(res.body.source).toBe('default')
+  })
+})
+
+// ---- new: draft/publish lifecycle -------------------------------------------
+
+function withDisabledStory() {
+  const config = structuredClone(BASE_TEMPLATE)
+  config.sections.find((s) => s.type === 'story')!.enabled = false
+  return config
+}
+
+describe('draft/publish lifecycle', () => {
+  it('edits stay in the draft; reports only change after publish', async () => {
+    // Publish the current default so there is a live version to compare against.
+    await request(app).post(`/api/templates/${fx.templateA.id}/publish`).set(asA).send({})
+
+    // Edit the draft (disable story) but do NOT publish yet.
+    const edited = await request(app)
+      .put(`/api/templates/${fx.templateA.id}`)
+      .set(asA)
+      .send({ config: withDisabledStory() })
+    expect(edited.body.hasUnpublishedChanges).toBe(true)
+
+    // The report still renders the published config (story enabled).
+    const before = await request(app).get(`/api/patients/${fx.patientA.id}/report`).set(asA)
+    expect(before.body.template.sections.find((s: { type: string }) => s.type === 'story').enabled).toBe(true)
+
+    // Publish, then the report reflects the change.
+    const published = await request(app)
+      .post(`/api/templates/${fx.templateA.id}/publish`)
+      .set(asA)
+      .send({ note: 'hide story' })
+    expect(published.body.hasUnpublishedChanges).toBe(false)
+
+    const after = await request(app).get(`/api/patients/${fx.patientA.id}/report`).set(asA)
+    expect(after.body.template.sections.find((s: { type: string }) => s.type === 'story').enabled).toBe(false)
+  })
+
+  it('publishing with no changes returns 409', async () => {
+    await request(app).post(`/api/templates/${fx.templateA.id}/publish`).set(asA).send({})
+    const again = await request(app).post(`/api/templates/${fx.templateA.id}/publish`).set(asA).send({})
+    expect(again.status).toBe(409)
+    expect(again.body.error.code).toBe('NOTHING_TO_PUBLISH')
+  })
+
+  it('records version snapshots and restores an old version into the draft', async () => {
+    await request(app).post(`/api/templates/${fx.templateA.id}/publish`).set(asA).send({ note: 'v-a' })
+    await request(app).put(`/api/templates/${fx.templateA.id}`).set(asA).send({ config: withDisabledStory() })
+    await request(app).post(`/api/templates/${fx.templateA.id}/publish`).set(asA).send({ note: 'v-b' })
+
+    const versions = await request(app).get(`/api/templates/${fx.templateA.id}/versions`).set(asA)
+    expect(versions.body.length).toBe(2)
+    const first = versions.body[versions.body.length - 1]
+
+    const restored = await request(app)
+      .post(`/api/templates/${fx.templateA.id}/versions/${first.version}/restore`)
+      .set(asA)
+    expect(restored.status).toBe(200)
+    // Restored into the draft (story enabled again), but not auto-published.
+    expect(restored.body.config.sections.find((s: { type: string }) => s.type === 'story').enabled).toBe(true)
+    expect(restored.body.hasUnpublishedChanges).toBe(true)
+  })
+
+  it("cannot publish or read versions of another clinic's template (404)", async () => {
+    const pub = await request(app).post(`/api/templates/${fx.templateA.id}/publish`).set(asB).send({})
+    expect(pub.status).toBe(404)
+    const versions = await request(app).get(`/api/templates/${fx.templateA.id}/versions`).set(asB)
+    expect(versions.status).toBe(404)
+  })
+})
+
+// ---- new: patients + report CRUD --------------------------------------------
+
+describe('patient + report CRUD', () => {
+  it('creates, updates and deletes a patient', async () => {
+    const created = await request(app).post('/api/patients').set(asA).send({ name: 'New Person', sex: 'female', age: 33 })
+    expect(created.status).toBe(201)
+    const id = created.body.id
+
+    const updated = await request(app).put(`/api/patients/${id}`).set(asA).send({ age: 34 })
+    expect(updated.body.age).toBe(34)
+
+    const del = await request(app).delete(`/api/patients/${id}`).set(asA)
+    expect(del.status).toBe(204)
+  })
+
+  it("rejects assigning another clinic's template to a patient (404)", async () => {
+    const res = await request(app)
+      .put(`/api/patients/${fx.patientA.id}`)
+      .set(asB) // clinic B cannot even see patient A
+      .send({ templateId: fx.templateA.id })
+    expect(res.status).toBe(404)
+  })
+
+  it('assigning a template makes the report resolve to it (source=assigned)', async () => {
+    const blank = await request(app).post('/api/templates').set(asA).send({ name: 'Blank', from: 'blank' })
+    await request(app).put(`/api/patients/${fx.patientA.id}`).set(asA).send({ templateId: blank.body.id })
+    const res = await request(app).get(`/api/patients/${fx.patientA.id}/report`).set(asA)
+    expect(res.body.source).toBe('assigned')
+    expect(res.body.template.sections.length).toBe(0)
+  })
+
+  it('rejects an invalid report payload (400)', async () => {
+    const res = await request(app)
+      .put(`/api/patients/${fx.patientA.id}/report`)
+      .set(asA)
+      .send({ assessmentDate: '2026-01-01', generatedDate: '2026-01-02', data: { nope: true } })
+    expect(res.status).toBe(400)
+    expect(res.body.error.code).toBe('VALIDATION_ERROR')
+  })
+})
+
+// ---- new: sharing ------------------------------------------------------------
+
+describe('share links', () => {
+  it('creates a public link that renders without a clinic header, and revokes it', async () => {
+    const created = await request(app).post(`/api/patients/${fx.patientA.id}/share`).set(asA).send({})
+    expect(created.status).toBe(201)
+    const token = created.body.token
+
+    const pub = await request(app).get(`/api/share/${token}`) // no clinic header
+    expect(pub.status).toBe(200)
+    expect(pub.body.clinicName).toBe('Clinic A')
+    expect(pub.body.patientName).toBe('Test Patient')
+
+    await request(app).delete(`/api/shares/${created.body.id}`).set(asA)
+    const afterRevoke = await request(app).get(`/api/share/${token}`)
+    expect(afterRevoke.status).toBe(404)
+  })
+
+  it('an unknown token is 404, and clinic B cannot share clinic A patients', async () => {
+    expect((await request(app).get('/api/share/does-not-exist')).status).toBe(404)
+    const cross = await request(app).post(`/api/patients/${fx.patientA.id}/share`).set(asB).send({})
+    expect(cross.status).toBe(404)
+  })
+})
+
+// ---- new: audit --------------------------------------------------------------
+
+describe('audit log', () => {
+  it('records mutations and stays scoped per clinic', async () => {
+    await request(app).post('/api/patients').set(asA).send({ name: 'Audited', sex: 'male', age: 20 })
+    const a = await request(app).get('/api/audit').set(asA)
+    expect(a.body.some((e: { action: string }) => e.action === 'patient.create')).toBe(true)
+
+    // Clinic B has its own (empty of A's events) log.
+    const b = await request(app).get('/api/audit').set(asB)
+    expect(b.body.every((e: { summary: string }) => !e.summary.includes('Audited'))).toBe(true)
   })
 })
