@@ -21,6 +21,8 @@ export function ReportRenderer({ data, config }: Props) {
   const theme = themeResult.success ? themeResult.data : DEFAULT_THEME
   const sections = Array.isArray(config?.sections) ? config.sections : []
 
+  const fontSize = theme.fontScale === 'large' ? 17 : theme.fontScale === 'compact' ? 14 : 15.5
+
   return (
     <ThemeContext.Provider value={theme}>
       <div
@@ -28,7 +30,13 @@ export function ReportRenderer({ data, config }: Props) {
         className={`${theme.font === 'serif' ? 'font-serif' : 'font-sans'} ${
           theme.density === 'compact' ? 'space-y-4' : 'space-y-6'
         }`}
-        style={{ '--accent': theme.accent } as CSSProperties}
+        style={
+          {
+            '--accent': theme.accent,
+            '--accent-2': theme.secondaryAccent ?? theme.accent,
+            fontSize,
+          } as CSSProperties
+        }
       >
         {sections.map((section) => {
           if (!section?.enabled) return null

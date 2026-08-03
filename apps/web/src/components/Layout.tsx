@@ -13,6 +13,7 @@ export function Layout({ children }: { children: ReactNode }) {
             {[
               { to: '/patients', label: 'Patients' },
               { to: '/templates', label: 'Templates' },
+              { to: '/activity', label: 'Activity' },
             ].map(({ to, label }) => (
               <NavLink
                 key={to}

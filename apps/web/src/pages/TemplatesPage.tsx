@@ -1,11 +1,34 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import type { TemplateSummaryDto } from '@app/shared'
 import {
   useCreateTemplate,
   useDeleteTemplate,
   useSetDefaultTemplate,
   useTemplates,
 } from '../lib/api'
+
+function StatusBadge({ template }: { template: TemplateSummaryDto }) {
+  if (!template.isPublished) {
+    return (
+      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold uppercase text-slate-500">
+        Draft
+      </span>
+    )
+  }
+  if (template.hasUnpublishedChanges) {
+    return (
+      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold uppercase text-amber-800">
+        Unpublished changes
+      </span>
+    )
+  }
+  return (
+    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold uppercase text-blue-700">
+      Published v{template.publishedVersion}
+    </span>
+  )
+}
 
 export function TemplatesPage() {
   const { data: templates, isLoading } = useTemplates()
@@ -16,6 +39,12 @@ export function TemplatesPage() {
 
   const [name, setName] = useState('')
   const [source, setSource] = useState<'base' | 'blank'>('base')
+  const [query, setQuery] = useState('')
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return (templates ?? []).filter((t) => !q || t.name.toLowerCase().includes(q))
+  }, [templates, query])
 
   const create = () => {
     if (!name.trim()) return
@@ -72,9 +101,21 @@ export function TemplatesPage() {
         )}
       </div>
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-6">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search templates…"
+          className="w-64 rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+        />
+      </div>
+
+      <div className="mt-4 space-y-3">
         {isLoading && <div className="text-sm text-slate-400">Loading…</div>}
-        {templates?.map((template) => (
+        {!isLoading && filtered.length === 0 && (
+          <div className="text-sm text-slate-400">No templates{query ? ' match your search' : ''}.</div>
+        )}
+        {filtered.map((template) => (
           <div
             key={template.id}
             className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
@@ -92,9 +133,10 @@ export function TemplatesPage() {
                     Default
                   </span>
                 )}
+                <StatusBadge template={template} />
               </div>
               <div className="text-xs text-slate-400">
-                v{template.version} · updated {new Date(template.updatedAt).toLocaleString()}
+                draft v{template.version} · updated {new Date(template.updatedAt).toLocaleString()}
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm">

@@ -5,3 +5,24 @@
 body {
   @apply bg-slate-100 text-slate-900 antialiased;
 }
+
+/* Print-optimized report: drop the app chrome and page background so the
+   document prints as a clean clinical report (web print, not PDF generation). */
+@media print {
+  body {
+    @apply bg-white;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  .print\:max-w-none {
+    max-width: none !important;
+  }
+  .print\:py-0 {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+}

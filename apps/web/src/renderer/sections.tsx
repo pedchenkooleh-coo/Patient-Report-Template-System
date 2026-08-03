@@ -14,7 +14,7 @@ import {
 } from '@app/shared'
 import { Markdown } from './Markdown'
 import { Card, Chip, FieldLabel, KindChip, RelevancyPill, SectionTitle, StatusBadge } from './primitives'
-import { safeOptions, useDensity } from './theme'
+import { safeOptions, useDensity, useReportTheme } from './theme'
 
 export interface SectionProps {
   data: ReportData
@@ -33,10 +33,16 @@ function formatDate(iso: string): string {
 export function HeaderSection({ data, title }: SectionProps) {
   const { meta } = data
   const { compact } = useDensity()
+  const { brandName } = useReportTheme()
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="h-2 bg-[color:var(--accent)]" />
+      <div className="h-2 bg-gradient-to-r from-[color:var(--accent)] to-[color:var(--accent-2)]" />
       <div className={compact ? 'p-4' : 'p-6'}>
+        {brandName ? (
+          <div className="mb-1 text-sm font-bold tracking-tight text-[color:var(--accent)]">
+            {brandName}
+          </div>
+        ) : null}
         {title ? (
           <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--accent)]">
             {title}
