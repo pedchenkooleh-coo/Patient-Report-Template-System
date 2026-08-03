@@ -74,8 +74,52 @@ function validateConfig(config: TemplateConfig): string {
   return JSON.stringify(TemplateConfigSchema.parse(config))
 }
 
+/** Create a template already published at version 1, with a version snapshot. */
+async function createPublishedTemplate(input: {
+  clinicId: string
+  name: string
+  config: TemplateConfig
+}) {
+  const json = validateConfig(input.config)
+  const template = await prisma.template.create({
+    data: {
+      clinicId: input.clinicId,
+      name: input.name,
+      isDefault: true,
+      version: 1,
+      config: json,
+      publishedConfig: json,
+      publishedVersion: 1,
+    },
+  })
+  await prisma.templateVersion.create({
+    data: {
+      templateId: template.id,
+      clinicId: input.clinicId,
+      version: 1,
+      config: json,
+      note: 'Initial version',
+      actor: 'seed',
+    },
+  })
+  await prisma.auditEvent.create({
+    data: {
+      clinicId: input.clinicId,
+      actor: 'seed',
+      action: 'template.publish',
+      targetType: 'template',
+      targetId: template.id,
+      summary: `Published "${input.name}" v1`,
+    },
+  })
+  return template
+}
+
 async function main() {
   // Reset in FK-safe order (idempotent seed).
+  await prisma.shareLink.deleteMany()
+  await prisma.auditEvent.deleteMany()
+  await prisma.templateVersion.deleteMany()
   await prisma.report.deleteMany()
   await prisma.patient.deleteMany()
   await prisma.template.deleteMany()
@@ -88,23 +132,15 @@ async function main() {
     data: { name: 'Northside Longevity', slug: 'northside-longevity' },
   })
 
-  await prisma.template.create({
-    data: {
-      clinicId: doron.id,
-      name: 'Doron Standard Report',
-      isDefault: true,
-      version: 1,
-      config: validateConfig(BASE_TEMPLATE),
-    },
+  await createPublishedTemplate({
+    clinicId: doron.id,
+    name: 'Doron Standard Report',
+    config: BASE_TEMPLATE,
   })
-  await prisma.template.create({
-    data: {
-      clinicId: northside.id,
-      name: 'Northside Concise Report',
-      isDefault: true,
-      version: 1,
-      config: validateConfig(NORTHSIDE_TEMPLATE),
-    },
+  await createPublishedTemplate({
+    clinicId: northside.id,
+    name: 'Northside Concise Report',
+    config: NORTHSIDE_TEMPLATE,
   })
 
   const fullReport = ReportDataSchema.parse(FULL_REPORT)

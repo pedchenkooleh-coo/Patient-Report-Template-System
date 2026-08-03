@@ -1,6 +1,6 @@
-// Prisma 5 + SQLite does not support the Json column type, so `data` and
-// `config` are stored as JSON-serialized String columns and validated with the
-// shared Zod schemas at the route boundary.
+// Prisma 5 + SQLite does not support the Json column type, so report `data`
+// and template `config` are stored as JSON-serialized String columns and
+// validated with the shared Zod schemas at the route boundary.
 
 datasource db {
   provider = "sqlite"
@@ -18,6 +18,9 @@ model Clinic {
   patients  Patient[]
   reports   Report[]
   templates Template[]
+  versions  TemplateVersion[]
+  audits    AuditEvent[]
+  shares    ShareLink[]
 }
 
 model Patient {
@@ -27,7 +30,11 @@ model Patient {
   name     String
   sex      String
   age      Int
+  // Optional per-patient template override; falls back to the clinic default.
+  // Not a hard FK so deleting a template simply clears the assignment at read.
+  templateId String?
   reports  Report[]
+  shares   ShareLink[]
 }
 
 model Report {
@@ -39,6 +46,7 @@ model Report {
   assessmentDate DateTime
   generatedDate  DateTime
   data           String // ReportData JSON
+  updatedAt      DateTime @default(now()) @updatedAt
 }
 
 model Template {
@@ -47,8 +55,57 @@ model Template {
   clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
   name      String
   isDefault Boolean  @default(false)
-  version   Int      @default(1)
-  config    String // TemplateConfig JSON
+  // `config` is the editable DRAFT. `publishedConfig` is what patient reports
+  // render; it only changes on an explicit publish. version is the draft-save
+  // counter; publishedVersion is the number of the live snapshot.
+  version          Int      @default(1)
+  config           String // draft TemplateConfig JSON
+  publishedConfig  String? // live TemplateConfig JSON (null until first publish)
+  publishedVersion Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  versions  TemplateVersion[]
+}
+
+// Immutable snapshot written on every publish — the version history + rollback.
+model TemplateVersion {
+  id         String   @id @default(cuid())
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  clinicId   String
+  clinic     Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  version    Int
+  config     String // TemplateConfig JSON snapshot
+  note       String?
+  actor      String
+  createdAt  DateTime @default(now())
+
+  @@unique([templateId, version])
+}
+
+// Append-only audit trail of every meaningful mutation, per clinic.
+model AuditEvent {
+  id         String   @id @default(cuid())
+  clinicId   String
+  clinic     Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  actor      String
+  action     String // e.g. template.publish, patient.create
+  targetType String // template | patient | report | share
+  targetId   String
+  summary    String
+  createdAt  DateTime @default(now())
+}
+
+// Unguessable public read-only link to a single patient report snapshot.
+model ShareLink {
+  id         String    @id @default(cuid())
+  token      String    @unique
+  clinicId   String
+  clinic     Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patientId  String
+  patient    Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  templateId String? // pinned template, else the patient's effective template
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  revokedAt  DateTime?
 }

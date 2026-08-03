@@ -152,10 +152,18 @@ export type SectionOptionsOf<T extends SectionType> = Extract<SectionConfig, { t
 
 // ---- theme + full config ----------------------------------------------------
 
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/
+
 export const ThemeSchema = z.object({
-  accent: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'accent must be a #rrggbb hex color'),
+  accent: z.string().regex(HEX_COLOR, 'accent must be a #rrggbb hex color'),
   font: z.enum(['sans', 'serif']),
   density: z.enum(['comfortable', 'compact']),
+  // Richer, optional theme controls. All optional (no defaults) so the
+  // BASE/BLANK constants and configs written by older clients stay valid; the
+  // renderer supplies sensible fallbacks.
+  secondaryAccent: z.string().regex(HEX_COLOR, 'secondaryAccent must be a #rrggbb hex color').optional(),
+  fontScale: z.enum(['compact', 'normal', 'large']).optional(),
+  brandName: z.string().max(80).optional(),
 })
 export type Theme = z.infer<typeof ThemeSchema>
 
