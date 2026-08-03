@@ -1,5 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { SortableItem } from '../components/editor/SortableItem'
 import {
   MANDATORY_SECTIONS,
   SECTION_TYPES,
@@ -72,8 +89,11 @@ export function TemplateEditorPage() {
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [addType, setAddType] = useState<SectionType>('custom_text')
-  const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [showJson, setShowJson] = useState(false)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
   const [publishOpen, setPublishOpen] = useState(false)
   const [publishNote, setPublishNote] = useState('')
   // When previewing a historical version, the right pane renders this instead.
@@ -149,14 +169,16 @@ export function TemplateEditorPage() {
       ),
     }))
 
-  const moveSection = (from: number, to: number) =>
+  const onDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e
+    if (!over || active.id === over.id) return
     setConfig((c) => {
-      if (to < 0 || to >= c.sections.length || from === to) return c
-      const sections = [...c.sections]
-      const [moved] = sections.splice(from, 1)
-      sections.splice(to, 0, moved!)
-      return { ...c, sections }
+      const from = c.sections.findIndex((s) => s.id === active.id)
+      const to = c.sections.findIndex((s) => s.id === over.id)
+      if (from < 0 || to < 0) return c
+      return { ...c, sections: arrayMove(c.sections, from, to) }
     })
+  }
 
   const duplicateSection = (index: number) =>
     setConfig((c) => {
@@ -179,7 +201,13 @@ export function TemplateEditorPage() {
 
   const doSave = () => {
     if (!validation.success) return
-    save.mutate({ name: draft.name, config })
+    save.mutate(
+      { name: draft.name, config },
+      {
+        onSuccess: () => toast.success('Draft saved'),
+        onError: (e) => toast.error(e instanceof Error ? e.message : 'Save failed'),
+      },
+    )
   }
 
   const doPublish = () => {
@@ -192,7 +220,9 @@ export function TemplateEditorPage() {
           onSuccess: () => {
             setPublishOpen(false)
             setPublishNote('')
+            toast.success('Template published to patient reports')
           },
+          onError: (e) => toast.error(e instanceof Error ? e.message : 'Publish failed'),
         },
       )
     if (dirty) save.mutate({ name: draft.name, config }, { onSuccess: run })
@@ -285,95 +315,108 @@ export function TemplateEditorPage() {
                 No sections yet — add one below to start building this template.
               </div>
             )}
-            {config.sections.map((section, index) => {
-              const mandatory = MANDATORY_SECTIONS.includes(section.type)
-              const expanded = expandedId === section.id
-              return (
-                <div
-                  key={section.id}
-                  draggable
-                  onDragStart={() => setDragIndex(index)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => {
-                    if (dragIndex !== null) moveSection(dragIndex, index)
-                    setDragIndex(null)
-                  }}
-                  onDragEnd={() => setDragIndex(null)}
-                  className={`rounded-md border ${
-                    dragIndex === index ? 'border-blue-400 opacity-60' : 'border-slate-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 p-2">
-                    <span className="cursor-grab select-none px-1 text-slate-300" title="Drag to reorder">
-                      ⠿
-                    </span>
-                    <label
-                      title={mandatory ? 'The header section is mandatory and cannot be disabled.' : undefined}
-                      className={mandatory ? 'cursor-not-allowed' : 'cursor-pointer'}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={section.enabled}
-                        disabled={mandatory}
-                        onChange={(e) => updateSection(section.id, { enabled: e.target.checked })}
-                        className="h-4 w-4 rounded border-slate-300"
-                      />
-                    </label>
-                    <button
-                      onClick={() => setExpandedId(expanded ? null : section.id)}
-                      className={`flex-1 truncate text-left text-sm font-medium ${
-                        section.enabled ? 'text-slate-800' : 'text-slate-400 line-through'
-                      }`}
-                    >
-                      {SECTION_TYPE_LABELS[section.type]}
-                      {section.title ? <span className="font-normal text-slate-400"> · “{section.title}”</span> : null}
-                    </button>
-                    {mandatory && (
-                      <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-500">
-                        Required
-                      </span>
-                    )}
-                    <button
-                      onClick={() => duplicateSection(index)}
-                      title="Duplicate section"
-                      className="px-1 text-xs text-slate-400 hover:text-slate-700"
-                    >
-                      ⧉
-                    </button>
-                    <button
-                      onClick={() => setExpandedId(expanded ? null : section.id)}
-                      className="px-1 text-xs text-slate-400"
-                    >
-                      {expanded ? '▾' : '▸'}
-                    </button>
-                  </div>
-                  {expanded && (
-                    <div className="space-y-3 border-t border-slate-100 p-3">
-                      <label className="block text-sm text-slate-700">
-                        Title override
-                        <input
-                          value={section.title ?? ''}
-                          placeholder="Use default title"
-                          onChange={(e) =>
-                            updateSection(section.id, { title: e.target.value === '' ? undefined : e.target.value })
-                          }
-                          className="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm"
-                        />
-                      </label>
-                      <SectionOptionsForm section={section} onChange={(patch) => updateOptions(section.id, patch)} />
-                      {!mandatory && (
-                        <button
-                          onClick={() => removeSection(section.id)}
-                          className="text-xs font-medium text-rose-600 hover:underline"
-                        >
-                          Remove section
-                        </button>
-                      )}
-                    </div>
-                  )}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+              <SortableContext
+                items={config.sections.map((s) => s.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2">
+                  {config.sections.map((section) => {
+                    const mandatory = MANDATORY_SECTIONS.includes(section.type)
+                    const expanded = expandedId === section.id
+                    return (
+                      <SortableItem key={section.id} id={section.id}>
+                        {({ attributes, listeners }) => (
+                          <div className="rounded-md border border-slate-200 bg-white">
+                            <div className="flex items-center gap-1.5 p-2">
+                              <button
+                                {...attributes}
+                                {...listeners}
+                                title="Drag to reorder (or focus and use arrow keys)"
+                                aria-label={`Reorder ${SECTION_TYPE_LABELS[section.type]} section`}
+                                className="cursor-grab select-none px-1 text-slate-300 hover:text-slate-500"
+                              >
+                                ⠿
+                              </button>
+                              <label
+                                title={mandatory ? 'The header section is mandatory and cannot be disabled.' : undefined}
+                                className={mandatory ? 'cursor-not-allowed' : 'cursor-pointer'}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={section.enabled}
+                                  disabled={mandatory}
+                                  onChange={(e) => updateSection(section.id, { enabled: e.target.checked })}
+                                  className="h-4 w-4 rounded border-slate-300"
+                                />
+                              </label>
+                              <button
+                                onClick={() => setExpandedId(expanded ? null : section.id)}
+                                className={`flex-1 truncate text-left text-sm font-medium ${
+                                  section.enabled ? 'text-slate-800' : 'text-slate-400 line-through'
+                                }`}
+                              >
+                                {SECTION_TYPE_LABELS[section.type]}
+                                {section.title ? (
+                                  <span className="font-normal text-slate-400"> · “{section.title}”</span>
+                                ) : null}
+                              </button>
+                              {mandatory && (
+                                <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-500">
+                                  Required
+                                </span>
+                              )}
+                              <button
+                                onClick={() => duplicateSection(config.sections.indexOf(section))}
+                                title="Duplicate section"
+                                className="px-1 text-xs text-slate-400 hover:text-slate-700"
+                              >
+                                ⧉
+                              </button>
+                              <button
+                                onClick={() => setExpandedId(expanded ? null : section.id)}
+                                className="px-1 text-xs text-slate-400"
+                              >
+                                {expanded ? '▾' : '▸'}
+                              </button>
+                            </div>
+                            {expanded && (
+                              <div className="space-y-3 border-t border-slate-100 p-3">
+                                <label className="block text-sm text-slate-700">
+                                  Title override
+                                  <input
+                                    value={section.title ?? ''}
+                                    placeholder="Use default title"
+                                    onChange={(e) =>
+                                      updateSection(section.id, {
+                                        title: e.target.value === '' ? undefined : e.target.value,
+                                      })
+                                    }
+                                    className="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                                  />
+                                </label>
+                                <SectionOptionsForm
+                                  section={section}
+                                  onChange={(patch) => updateOptions(section.id, patch)}
+                                />
+                                {!mandatory && (
+                                  <button
+                                    onClick={() => removeSection(section.id)}
+                                    className="text-xs font-medium text-rose-600 hover:underline"
+                                  >
+                                    Remove section
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </SortableItem>
+                    )
+                  })}
                 </div>
-              )
-            })}
+              </SortableContext>
+            </DndContext>
             <div className="flex items-center gap-2 pt-1">
               <select
                 value={addType}
@@ -402,7 +445,10 @@ export function TemplateEditorPage() {
               onPreview={(version, cfg) => setPreview(version && cfg ? { version, config: cfg } : null)}
               onRestore={(version) => {
                 setPreview(null)
-                restore.mutate(version)
+                restore.mutate(version, {
+                  onSuccess: () => toast.success(`Restored v${version} into the draft`),
+                  onError: (e) => toast.error(e instanceof Error ? e.message : 'Restore failed'),
+                })
               }}
             />
           )}

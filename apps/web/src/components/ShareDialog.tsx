@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import type { TemplateSummaryDto } from '@app/shared'
 import { useCreateShare, usePatientShares, useRevokeShare } from '../lib/api'
 import { Modal } from './Modal'
@@ -66,10 +67,13 @@ export function ShareDialog({
         </label>
         <button
           onClick={() =>
-            create.mutate({
-              templateId: templateId || null,
-              expiresInDays: expires ? parseInt(expires, 10) : null,
-            })
+            create.mutate(
+              {
+                templateId: templateId || null,
+                expiresInDays: expires ? parseInt(expires, 10) : null,
+              },
+              { onSuccess: () => toast.success('Share link created') },
+            )
           }
           disabled={create.isPending}
           className="rounded-md bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40"
@@ -103,7 +107,7 @@ export function ShareDialog({
             </button>
             {s.active && (
               <button
-                onClick={() => revoke.mutate(s.id)}
+                onClick={() => revoke.mutate(s.id, { onSuccess: () => toast.success('Link revoked') })}
                 className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
               >
                 Revoke

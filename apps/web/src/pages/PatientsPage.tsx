@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { SEX_VALUES, type PatientDto } from '@app/shared'
 import { useCreatePatient, useDeletePatient, usePatients, useTemplates, useUpdatePatient } from '../lib/api'
 import { Modal } from '../components/Modal'
@@ -106,7 +107,9 @@ export function PatientsPage() {
                     <button
                       onClick={() => {
                         if (confirm(`Delete ${patient.name}? This also deletes their report.`))
-                          deletePatient.mutate(patient.id)
+                          deletePatient.mutate(patient.id, {
+                            onSuccess: () => toast.success(`Deleted ${patient.name}`),
+                          })
                       }}
                       className="text-rose-500 hover:text-rose-700"
                     >
@@ -156,10 +159,25 @@ function PatientDialog({
     if (patient) {
       update.mutate(
         { id: patient.id, body: { name, sex, age, templateId: templateId || null } },
-        { onSuccess: onClose },
+        {
+          onSuccess: () => {
+            toast.success('Patient updated')
+            onClose()
+          },
+          onError: (e) => toast.error(e.message),
+        },
       )
     } else {
-      create.mutate({ name, sex, age }, { onSuccess: onClose })
+      create.mutate(
+        { name, sex, age },
+        {
+          onSuccess: () => {
+            toast.success('Patient created')
+            onClose()
+          },
+          onError: (e) => toast.error(e.message),
+        },
+      )
     }
   }
 

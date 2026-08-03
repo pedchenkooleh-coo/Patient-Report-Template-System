@@ -48,10 +48,14 @@ Report rendering & templates
   section types skipped, per-section error boundaries).
 
 Robust editing
-- **Drag-and-drop** section reordering, duplicate/remove section, add any section type.
+- **Accessible drag-and-drop** section reordering (`@dnd-kit`: keyboard + touch + SR),
+  duplicate/remove section, add any section type.
 - **Undo / redo** (buttons + ⌘Z / ⌘⇧Z), **live schema validation** that blocks Save/Publish.
 - **Import / export** a template as JSON; **richer theme** (accent + secondary accent, font,
   font size, density, brand name) that visibly changes the live preview.
+- **Structured report editor** (`react-hook-form` + zod resolver) with add/remove field
+  arrays for goals, plan, timeline, coach and biomarkers — plus an *Advanced JSON* tab over
+  the same schema. Toast feedback (`sonner`) on save/publish/share.
 
 Versioning & workflow
 - **Draft vs Published**: the editor edits a draft; patient reports render the *published*

@@ -110,13 +110,32 @@ data, the template decides rendering) and is the realistic shape of an integrati
 in production this endpoint is fed by an upstream system, not typed by hand. A guided form is
 a straightforward future addition on top of the same schema.
 
-## Editor UX: native drag-and-drop, undo/redo, live validation
+## Editor UX: undo/redo + live validation
 
-Drag-and-drop reordering uses the native HTML5 DnD API and undo/redo is a small
-past/present/future reducer — both deliberately dependency-free to keep the review surface
-small. Live validation runs the shared `TemplateConfigSchema` on every keystroke and blocks
-Save/Publish while invalid, so the server's Zod rejection is a backstop, not the first signal
-a clinician sees.
+Undo/redo is a small past/present/future reducer over the `{ name, config }` draft (no
+library — the state is small and bespoke). Live validation runs the shared
+`TemplateConfigSchema` on every keystroke and blocks Save/Publish while invalid, so the
+server's Zod rejection is a backstop, not the first signal a clinician sees.
+
+## Runtime dependencies — chosen deliberately, not by default
+
+The first pass was intentionally dependency-free. On review feedback ("more robust editing,
+higher-value features") three libraries were added where hand-rolling was measurably worse —
+each earns its place; the guiding rule was *right tool, not more tools*:
+
+- **`@dnd-kit`** for section reordering. The native HTML5 DnD it replaced had no keyboard
+  support, no touch, and poor screen-reader semantics — unacceptable for a clinical tool.
+  dnd-kit gives keyboard dragging, touch, and ARIA live-region announcements out of the box.
+- **`react-hook-form` + `@hookform/resolvers` (zod)** for report editing. A raw-JSON textarea
+  is honest but reads as a placeholder; a schema-driven form with add/remove field arrays for
+  goals, plan, timeline, coach and biomarker tables is the real "content" upgrade. The
+  resolver reuses the *same* `ReportDataSchema`, and fields not rendered pass through
+  untouched — so the form and the (retained) "Advanced JSON" tab are two views of one schema.
+- **`sonner`** for toast feedback on save/publish/share instead of scattered inline banners —
+  a small, focused polish dependency.
+
+Deliberately *not* added: date/utility lib(date-fns, lodash) and any UI kit (MUI/AntD) — the
+brief calls for plain Tailwind, and those would add weight without matching value.
 
 ## Tenant isolation
 
@@ -171,8 +190,9 @@ Judgment calls made here (simpler-option rule):
 
 Draft/publish + version history + rollback, an append-only audit/activity log, per-patient
 template assignment, public read-only share links, patient & report CRUD, print view, and the
-editor upgrades (drag-and-drop, undo/redo, live validation, JSON import/export, richer theme).
-These were previously on the cut list; the remaining gaps below are the honest next tier.
+editor upgrades (accessible drag-and-drop, undo/redo, live validation, JSON import/export,
+richer theme, a schema-driven report form, and toast feedback). These were previously on the
+cut list; the remaining gaps below are the honest next tier.
 
 ## Still cut for scope — what production needs
 

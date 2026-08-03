@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import type { TemplateSummaryDto } from '@app/shared'
 import {
   useCreateTemplate,
@@ -53,8 +54,10 @@ export function TemplatesPage() {
       {
         onSuccess: (created) => {
           setName('')
+          toast.success(`Created "${created.name}"`)
           navigate(`/templates/${created.id}`)
         },
+        onError: (e) => toast.error(e.message),
       },
     )
   }
@@ -148,10 +151,10 @@ export function TemplatesPage() {
               </Link>
               <button
                 onClick={() =>
-                  createTemplate.mutate({
-                    name: `${template.name} (copy)`,
-                    from: { duplicateOf: template.id },
-                  })
+                  createTemplate.mutate(
+                    { name: `${template.name} (copy)`, from: { duplicateOf: template.id } },
+                    { onSuccess: (c) => toast.success(`Duplicated as "${c.name}"`) },
+                  )
                 }
                 className="rounded-md border border-slate-300 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50"
               >
@@ -159,14 +162,23 @@ export function TemplatesPage() {
               </button>
               {!template.isDefault && (
                 <button
-                  onClick={() => setDefault.mutate(template.id)}
+                  onClick={() =>
+                    setDefault.mutate(template.id, {
+                      onSuccess: () => toast.success(`"${template.name}" is now the default`),
+                    })
+                  }
                   className="rounded-md border border-slate-300 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50"
                 >
                   Set default
                 </button>
               )}
               <button
-                onClick={() => deleteTemplate.mutate(template.id)}
+                onClick={() =>
+                  deleteTemplate.mutate(template.id, {
+                    onSuccess: () => toast.success(`Deleted "${template.name}"`),
+                    onError: (e) => toast.error(e.message),
+                  })
+                }
                 disabled={template.isDefault}
                 title={
                   template.isDefault
